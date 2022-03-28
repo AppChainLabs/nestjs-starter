@@ -9,13 +9,16 @@ export enum AuthType {
   Password = 'AUTH_TYPE::PASSWORD',
 }
 
+export enum HashingAlgorithm {
+  BCrypt = 'HASH_ALGO::BCRYPT',
+}
+
 export type WalletCredential = {
   walletAddress: string;
-  signedData: string;
 };
 
 export type PasswordCredential = {
-  passwordHash: string;
+  passwordHash: HashingAlgorithm;
   algorithm: string;
 };
 

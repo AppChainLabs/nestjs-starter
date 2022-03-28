@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
@@ -10,8 +11,18 @@ import mongoose, { Model } from 'mongoose';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UserService } from '../user/user.service';
 import { RegistrationAuthDto } from './dto/registration-auth.dto';
-import { AuthDocument, AuthModel, AuthType } from './entities/auth.entity';
+import {
+  AuthDocument,
+  AuthModel,
+  AuthType,
+  HashingAlgorithm,
+  PasswordCredential,
+  WalletCredential,
+} from './entities/auth.entity';
 import { UserRole } from '../user/entities/user.entity';
+import { HashingService } from '../providers/hashing';
+import { SignatureService } from '../providers/signature';
+import { WalletCredentialDto } from './dto/wallet-credential-dto';
 
 @Injectable()
 export class AuthService {
@@ -25,10 +36,58 @@ export class AuthService {
 
     // inject service
     private userService: UserService,
+
+    // inject hashing service
+    private hashingService: HashingService,
   ) {}
 
   getAuthEntities(userId: string) {
     return this.AuthDocument.find({ userId });
+  }
+
+  async validateUserWithWalletCredential(
+    query: string,
+    authType: AuthType,
+    walletCredentialDto: WalletCredentialDto,
+  ) {
+    const user = await this.userService.findByEmailOrUsername(query);
+    if (!user) throw new UnauthorizedException();
+
+    const { credentials }: { credentials: WalletCredential } =
+      await this.AuthDocument.findOne({
+        userId: user.id,
+        type: authType,
+      });
+
+    const signer = new SignatureService().getSigner(authType);
+
+    if (!signer.verify(walletCredentialDto, credentials))
+      throw new UnauthorizedException();
+    return user;
+  }
+
+  async validateUserWithPasswordCredential(query: string, password: string) {
+    const user = await this.userService.findByEmailOrUsername(query);
+    if (!user) throw new UnauthorizedException();
+
+    const { credentials }: { credentials: PasswordCredential } =
+      await this.AuthDocument.findOne({
+        userId: user.id,
+        type: AuthType.Password,
+      });
+
+    if (credentials.algorithm !== HashingAlgorithm.BCrypt)
+      throw new UnauthorizedException();
+
+    const hasher = this.hashingService.getHasher(credentials.algorithm);
+
+    const isHashValid = await hasher.compare(
+      password,
+      credentials.passwordHash,
+    );
+    if (!isHashValid) throw new UnauthorizedException();
+
+    return user;
   }
 
   async signUpUser(registrationDto: RegistrationAuthDto) {

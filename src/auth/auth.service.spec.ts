@@ -5,13 +5,15 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UserModel, UserSchema } from '../user/entities/user.entity';
 import { AuthModel, AuthSchema } from './entities/auth.entity';
 import { UserService } from '../user/user.service';
+import { HashingService } from '../providers/hashing';
+import { SignatureService } from '../providers/signature';
 
 describe('AuthService', () => {
   let service: AuthService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AuthService, UserService],
+      providers: [AuthService, UserService, HashingService, SignatureService],
       imports: [
         rootMongooseTestModule(),
         MongooseModule.forFeature([

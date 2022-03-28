@@ -5,10 +5,12 @@ import { UserService } from '../user/user.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModel, AuthSchema } from './entities/auth.entity';
 import { UserModel, UserSchema } from '../user/entities/user.entity';
+import { HashingService } from '../providers/hashing';
+import { SignatureService } from '../providers/signature';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, UserService],
+  providers: [AuthService, UserService, HashingService, SignatureService],
   imports: [
     // Inject db model
     MongooseModule.forFeature([
