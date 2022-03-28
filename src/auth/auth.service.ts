@@ -59,7 +59,7 @@ export class AuthService {
       });
     });
 
-    session.endSession();
+    await session.endSession();
     return user;
   }
 
