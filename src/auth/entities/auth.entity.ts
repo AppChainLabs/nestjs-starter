@@ -4,9 +4,9 @@ import { Injectable } from '@nestjs/common';
 import { UserModel } from '../../user/entities/user.entity';
 
 export enum AuthType {
-  EVMChain = 'AuthType::EVMChain',
-  Solana = 'AuthType::Solana',
-  Password = 'AuthType::Password',
+  EVMChain = 'AUTH_TYPE::EVM_CHAIN',
+  Solana = 'AUTH_TYPE::SOLANA',
+  Password = 'AUTH_TYPE::PASSWORD',
 }
 
 export type WalletCredential = {

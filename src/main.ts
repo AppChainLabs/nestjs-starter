@@ -36,7 +36,9 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('Ancient8')
     .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, config, {
+    operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,
+  });
   SwaggerModule.setup('api', app, document);
 
   if (process.env.NODE_ENV === 'production') {

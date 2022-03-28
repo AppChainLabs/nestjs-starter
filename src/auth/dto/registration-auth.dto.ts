@@ -1,4 +1,3 @@
-import { PartialType } from '@nestjs/swagger';
 import {
   AuthType,
   PasswordCredential,
@@ -7,14 +6,11 @@ import {
 
 class RegistrationDto {
   avatar: string;
-  credentials: WalletCredential | PasswordCredential;
   displayName: string;
   email: string;
-  isEmailVerified: boolean;
-  isEnabled: boolean;
-  role: string[];
-  type: AuthType;
   username: string;
+  type: AuthType;
+  credentials: WalletCredential | PasswordCredential;
 }
 
-export class RegistrationAuthDto extends PartialType(RegistrationDto) {}
+export class RegistrationAuthDto extends RegistrationDto {}

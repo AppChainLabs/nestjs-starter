@@ -11,7 +11,9 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('user')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -31,18 +33,18 @@ export class UserController {
     return this.userService.findAll(searchQuery, limit, skip, sort);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  @Get(':user_id')
+  findOne(@Param('user_id') id: string) {
     return this.userService.findById(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  @Patch(':user_id')
+  update(@Param('user_id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
+  @Delete(':user_id')
+  remove(@Param('user_id') id: string) {
     return this.userService.remove(id);
   }
 }

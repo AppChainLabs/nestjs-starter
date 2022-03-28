@@ -1,8 +1,10 @@
 import { Controller, Post, Body, Param, Delete } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { RegistrationAuthDto } from './dto/registration-auth.dto';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -17,8 +19,8 @@ export class AuthController {
     return this.authService.createAuthEntity(createAuthDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
+  @Delete(':auth_id')
+  deleteEntity(@Param('auth_id') id: string) {
     return this.authService.deleteAuthEntity(id);
   }
 }
