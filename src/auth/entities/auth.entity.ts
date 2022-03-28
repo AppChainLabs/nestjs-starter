@@ -26,7 +26,7 @@ export class Auth {
 }
 
 @Injectable()
-@Schema()
+@Schema({ timestamps: true })
 export class AuthModel extends Auth {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: () => UserModel })
   userId: string;

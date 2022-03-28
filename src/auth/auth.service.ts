@@ -1,26 +1,67 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import mongoose, { Model } from 'mongoose';
+
 import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { UserService } from '../user/user.service';
+import { RegistrationAuthDto } from './dto/registration-auth.dto';
+import { AuthDocument, AuthModel, AuthType } from './entities/auth.entity';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+  constructor(
+    // inject connection
+    @InjectConnection() private readonly connection: mongoose.Connection,
+
+    // inject model
+    @InjectModel(AuthModel.name)
+    private AuthDocument: Model<AuthDocument>,
+
+    // inject service
+    private userService: UserService,
+  ) {}
+
+  getAuthEntities(userId: string) {
+    return this.AuthDocument.find({ userId });
   }
 
-  findAll() {
-    return `This action returns all auth`;
+  async signUpUser(registrationDto: RegistrationAuthDto) {
+    if (registrationDto.type === AuthType.Password && !registrationDto.email) {
+      throw new BadRequestException(`${AuthType.Password}::EMAIL_NOT_PROVIDED`);
+    }
+
+    const session = await this.connection.startSession();
+    await session.startTransaction();
+
+    const user = await this.userService.create(registrationDto);
+    await this.createAuthEntity(registrationDto);
+
+    session.endSession();
+    return user;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
+  async createAuthEntity(createAuthDto: CreateAuthDto) {
+    if (
+      createAuthDto.type === AuthType.Password &&
+      (await this.AuthDocument.findOne({ type: createAuthDto.type }))
+    ) {
+      throw new ConflictException(`${AuthType.Password}::DUPLICATED_ENTITIES`);
+    }
+
+    const authDocument = new this.AuthDocument({
+      userId: createAuthDto.userId,
+      credentials: createAuthDto.credentials,
+      type: createAuthDto.type,
+    });
+
+    return authDocument.save();
   }
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+  deleteAuthEntity(id: string) {
+    return this.AuthDocument.findByIdAndRemove(id);
   }
 }
