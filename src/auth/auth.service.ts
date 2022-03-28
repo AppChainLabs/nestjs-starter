@@ -34,11 +34,13 @@ export class AuthService {
       throw new BadRequestException(`${AuthType.Password}::EMAIL_NOT_PROVIDED`);
     }
 
-    const session = await this.connection.startSession();
-    await session.startTransaction();
+    let user;
 
-    const user = await this.userService.create(registrationDto);
-    await this.createAuthEntity(registrationDto);
+    const session = await this.connection.startSession();
+    await session.withTransaction(async () => {
+      user = await this.userService.create(registrationDto);
+      await this.createAuthEntity(registrationDto);
+    });
 
     session.endSession();
     return user;

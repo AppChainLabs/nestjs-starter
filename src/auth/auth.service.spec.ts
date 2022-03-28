@@ -4,7 +4,7 @@ import { rootMongooseTestModule } from '../test.helper';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModel, UserSchema } from '../user/entities/user.entity';
 import { AuthModel, AuthSchema } from './entities/auth.entity';
-import {UserService} from "../user/user.service";
+import { UserService } from '../user/user.service';
 
 describe('AuthService', () => {
   let service: AuthService;

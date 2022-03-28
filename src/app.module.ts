@@ -38,11 +38,11 @@ import { AuthModel, AuthSchema } from './auth/entities/auth.entity';
     ]),
 
     // Import other modules
-    AuthModule,
     UserModule,
+    AuthModule,
     EmailModule,
   ],
-  controllers: [AppController, AuthController, UserController],
-  providers: [AuthService, AppService, UserService],
+  controllers: [AppController, UserController, AuthController],
+  providers: [AppService, UserService, AuthService],
 })
 export class AppModule {}
