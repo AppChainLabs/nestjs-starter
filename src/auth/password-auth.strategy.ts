@@ -1,16 +1,33 @@
-import { Strategy } from 'passport-local';
+import { Strategy } from 'passport-custom';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  Request,
+  Req,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserDocument } from '../user/entities/user.entity';
 
+const PasswordAuthStrategyKey = 'password-auth';
+
 @Injectable()
-export class PasswordAuthStrategy extends PassportStrategy(Strategy) {
+export class PasswordAuthStrategy extends PassportStrategy(
+  Strategy,
+  PasswordAuthStrategyKey,
+) {
+  static key = PasswordAuthStrategyKey;
+
   constructor(private authService: AuthService) {
     super();
   }
 
-  async validate(username: string, password: string): Promise<UserDocument> {
+  async validate(@Req() req: Request): Promise<UserDocument> {
+    const { username, password } = req.body as unknown as {
+      username: string;
+      password: string;
+    };
+
     const user = await this.authService.validateUserWithPasswordCredential(
       username,
       password,

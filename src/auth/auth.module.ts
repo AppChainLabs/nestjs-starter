@@ -7,10 +7,19 @@ import { AuthModel, AuthSchema } from './entities/auth.entity';
 import { UserModel, UserSchema } from '../user/entities/user.entity';
 import { HashingService } from '../providers/hashing';
 import { SignatureService } from '../providers/signature';
+import { WalletAuthStrategy } from './wallet-auth.strategy';
+import { PasswordAuthStrategy } from './password-auth.strategy';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, UserService, HashingService, SignatureService],
+  providers: [
+    AuthService,
+    UserService,
+    HashingService,
+    SignatureService,
+    WalletAuthStrategy,
+    PasswordAuthStrategy,
+  ],
   imports: [
     // Inject db model
     MongooseModule.forFeature([

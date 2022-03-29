@@ -4,7 +4,7 @@ import bs from 'bs58';
 import web3 from 'web3';
 
 import { AuthType, WalletCredential } from '../auth/entities/auth.entity';
-import { WalletCredentialDto } from '../auth/dto/wallet-credential-dto';
+import { WalletCredentialAuthDto } from '../auth/dto/wallet-credential-auth.dto';
 
 @Injectable()
 export class SignatureService {
@@ -21,11 +21,14 @@ export class SignatureService {
 }
 
 interface Signer {
-  verify: (data: WalletCredentialDto, credential: WalletCredential) => boolean;
+  verify: (
+    data: WalletCredentialAuthDto,
+    credential: WalletCredential,
+  ) => boolean;
 }
 
 class SolanaSigner implements Signer {
-  verify(data: WalletCredentialDto, credential: WalletCredential): boolean {
+  verify(data: WalletCredentialAuthDto, credential: WalletCredential): boolean {
     const message = new TextEncoder().encode(data.message);
     return (
       sign.detached.verify(
@@ -38,7 +41,7 @@ class SolanaSigner implements Signer {
 }
 
 class EVMSigner implements Signer {
-  verify(data: WalletCredentialDto, credential: WalletCredential): boolean {
+  verify(data: WalletCredentialAuthDto, credential: WalletCredential): boolean {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const address = web3.eth.accounts.recover(

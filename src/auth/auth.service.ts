@@ -22,7 +22,8 @@ import {
 import { UserRole } from '../user/entities/user.entity';
 import { HashingService } from '../providers/hashing';
 import { SignatureService } from '../providers/signature';
-import { WalletCredentialDto } from './dto/wallet-credential-dto';
+import { WalletCredentialAuthDto } from './dto/wallet-credential-auth.dto';
+import { PasswordCredentialAuthDto } from './dto/password-credential-auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -45,10 +46,19 @@ export class AuthService {
     return this.AuthDocument.find({ userId });
   }
 
+  verifyWalletSignature(
+    authType: AuthType,
+    walletCredentialDto: WalletCredentialAuthDto,
+    walletCredential: WalletCredential,
+  ) {
+    const signer = new SignatureService().getSigner(authType);
+    return signer.verify(walletCredentialDto, walletCredential);
+  }
+
   async validateUserWithWalletCredential(
     query: string,
     authType: AuthType,
-    walletCredentialDto: WalletCredentialDto,
+    walletCredentialDto: WalletCredentialAuthDto,
   ) {
     const user = await this.userService.findByEmailOrUsername(query);
     if (!user) throw new UnauthorizedException();
@@ -59,9 +69,7 @@ export class AuthService {
         type: authType,
       });
 
-    const signer = new SignatureService().getSigner(authType);
-
-    if (!signer.verify(walletCredentialDto, credentials))
+    if (!this.verifyWalletSignature(authType, walletCredentialDto, credentials))
       throw new UnauthorizedException();
     return user;
   }
@@ -81,20 +89,13 @@ export class AuthService {
 
     const hasher = this.hashingService.getHasher(credentials.algorithm);
 
-    const isHashValid = await hasher.compare(
-      password,
-      credentials.passwordHash,
-    );
+    const isHashValid = await hasher.compare(password, credentials.password);
     if (!isHashValid) throw new UnauthorizedException();
 
     return user;
   }
 
   async signUpUser(registrationDto: RegistrationAuthDto) {
-    if (registrationDto.type === AuthType.Password && !registrationDto.email) {
-      throw new BadRequestException(`AUTH::SIGNUP::EMAIL_NOT_PROVIDED`);
-    }
-
     let user;
 
     const session = await this.connection.startSession();
@@ -107,13 +108,13 @@ export class AuthService {
         avatar: registrationDto.avatar,
         isEnabled: true,
         isEmailVerified: false,
-        role: [UserRole.User],
+        roles: [UserRole.User],
       });
 
       // then create auth entity
       await this.createAuthEntity({
         type: registrationDto.type,
-        credentials: registrationDto.credentials,
+        credential: registrationDto.credential,
         userId: user.id,
       });
     });
@@ -123,16 +124,50 @@ export class AuthService {
   }
 
   async createAuthEntity(createAuthDto: CreateAuthDto) {
-    if (
-      createAuthDto.type === AuthType.Password &&
-      (await this.AuthDocument.findOne({ type: createAuthDto.type }))
-    ) {
-      throw new ConflictException(`AUTH::CREATE::DUPLICATED_ENTITIES`);
+    let credentialData;
+
+    if (createAuthDto.type === AuthType.Password) {
+      const credentialDto =
+        createAuthDto.credential as PasswordCredentialAuthDto;
+
+      if (!credentialDto.password) {
+        throw new BadRequestException('AUTH::CREATE::CREDENTIAL_NOT_PROVIDED');
+      }
+
+      if (
+        await this.AuthDocument.findOne({
+          userId: createAuthDto.userId,
+          type: createAuthDto.type,
+        })
+      )
+        throw new ConflictException(`AUTH::CREATE::DUPLICATED_ENTITIES`);
+
+      credentialData = {
+        password: await this.hashingService
+          .getHasher(HashingAlgorithm.BCrypt)
+          .hash(credentialDto.password),
+
+        algorithm: HashingAlgorithm.BCrypt,
+      } as PasswordCredential;
+    } else {
+      const credentialDto = createAuthDto.credential as WalletCredentialAuthDto;
+
+      if (
+        !this.verifyWalletSignature(createAuthDto.type, credentialDto, {
+          walletAddress: credentialDto.walletAddress,
+        })
+      ) {
+        throw new BadRequestException('AUTH::CREATE::SIGNATURE_NOT_MATCHED');
+      }
+
+      credentialData = {
+        walletAddress: credentialDto.walletAddress,
+      };
     }
 
     const authDocument = new this.AuthDocument({
       userId: createAuthDto.userId,
-      credentials: createAuthDto.credentials,
+      credential: credentialData,
       type: createAuthDto.type,
     });
 

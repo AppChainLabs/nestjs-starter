@@ -1,8 +1,8 @@
 import { AuthType } from '../entities/auth.entity';
-import { WalletCredentialDto } from './wallet-credential-dto';
+import { WalletCredentialAuthDto } from './wallet-credential-auth.dto';
 
 export class LoginWalletAuthDto {
   username: string;
   authType: AuthType;
-  walletCredentialDto: WalletCredentialDto;
+  walletCredentialDto: WalletCredentialAuthDto;
 }

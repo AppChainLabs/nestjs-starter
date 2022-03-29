@@ -11,7 +11,12 @@ export class HashingService {
 }
 
 class BCryptHashing {
-  genSalt: typeof bcrypt.genSalt;
-  hash: typeof bcrypt.hash;
-  compare: typeof bcrypt.compare;
+  genSalt: typeof bcrypt.genSalt = bcrypt.genSalt;
+
+  async hash(data: any) {
+    const salt = await this.genSalt();
+    return bcrypt.hash(data, salt);
+  }
+
+  compare: typeof bcrypt.compare = bcrypt.compare;
 }

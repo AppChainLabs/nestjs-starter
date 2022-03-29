@@ -1,8 +1,6 @@
-import {
-  AuthType,
-  PasswordCredential,
-  WalletCredential,
-} from '../entities/auth.entity';
+import { AuthType } from '../entities/auth.entity';
+import { PasswordCredentialAuthDto } from './password-credential-auth.dto';
+import { WalletCredentialAuthDto } from './wallet-credential-auth.dto';
 
 class RegistrationDto {
   avatar: string;
@@ -10,7 +8,7 @@ class RegistrationDto {
   email: string;
   username: string;
   type: AuthType;
-  credentials: WalletCredential | PasswordCredential;
+  credential: WalletCredentialAuthDto | PasswordCredentialAuthDto;
 }
 
 export class RegistrationAuthDto extends RegistrationDto {}

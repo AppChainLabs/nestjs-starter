@@ -7,7 +7,7 @@ export class User {
   email: string;
   displayName: string;
   avatar: string;
-  role: string[];
+  roles: string[];
   isEmailVerified: boolean;
   isEnabled: boolean;
 }
@@ -20,10 +20,10 @@ export enum UserRole {
 @Injectable()
 @Schema({ timestamps: true })
 export class UserModel extends User {
-  @Prop()
+  @Prop({ unique: true, isRequired: false })
   username: string;
 
-  @Prop()
+  @Prop({ unique: true, isRequired: false })
   email: string;
 
   @Prop()
@@ -33,7 +33,7 @@ export class UserModel extends User {
   avatar: string;
 
   @Prop({ type: Array, enum: UserRole, default: [UserRole.User] })
-  role: string[];
+  roles: string[];
 
   @Prop()
   isEmailVerified: boolean;

@@ -7,14 +7,18 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
+  Optional,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { RolesGuard } from '../auth/roles-guard.guard';
 
 @ApiTags('user')
 @Controller('user')
+@UseGuards(RolesGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -28,7 +32,7 @@ export class UserController {
     @Query('searchQuery') searchQuery: string,
     @Query('limit') limit: number,
     @Query('skip') skip: number,
-    @Query('sort') sort: string,
+    @Optional() @Query('sort') sort = '-createdAt',
   ) {
     return this.userService.findAll(searchQuery, limit, skip, sort);
   }

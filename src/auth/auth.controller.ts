@@ -11,22 +11,24 @@ import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { RegistrationAuthDto } from './dto/registration-auth.dto';
-import { PasswordAuthStrategy } from './password-auth.strategy';
 import { LoginWalletAuthDto } from './dto/login-wallet-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { WalletAuthStrategy } from './wallet-auth.strategy';
+import { PasswordAuthStrategy } from './password-auth.strategy';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @UseGuards(PasswordAuthStrategy)
+  @UseGuards(AuthGuard(PasswordAuthStrategy.key))
   @Post('login')
   async login(@Body() loginDto: LoginAuthDto, @Request() req) {
     return req.user;
   }
 
-  @UseGuards(PasswordAuthStrategy)
+  @UseGuards(AuthGuard(WalletAuthStrategy.key))
   @Post('login-wallet')
   async loginWallet(
     @Body() loginWalletDto: LoginWalletAuthDto,
