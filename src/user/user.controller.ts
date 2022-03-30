@@ -17,7 +17,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from '../auth/roles-guard.guard';
 
 @ApiTags('user')
-@Controller('user')
+@Controller('api/user')
 @UseGuards(RolesGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}

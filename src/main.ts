@@ -35,6 +35,10 @@ async function bootstrap() {
     .setDescription('Todo: update description')
     .setVersion('1.0')
     .addTag('Ancient8')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'access-token',
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config, {
     operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,

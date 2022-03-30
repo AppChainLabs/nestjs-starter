@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
+import { JwtService } from '@nestjs/jwt';
 
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UserService } from '../user/user.service';
@@ -19,11 +20,19 @@ import {
   PasswordCredential,
   WalletCredential,
 } from './entities/auth.entity';
-import { UserRole } from '../user/entities/user.entity';
+import { UserDocument, UserRole } from '../user/entities/user.entity';
 import { HashingService } from '../providers/hashing';
 import { SignatureService } from '../providers/signature';
 import { WalletCredentialAuthDto } from './dto/wallet-credential-auth.dto';
 import { PasswordCredentialAuthDto } from './dto/password-credential-auth.dto';
+import { Jwt } from '../providers/jwt';
+import { JwtPayload, JwtSignedData } from './dto/jwt-auth.dto';
+import {
+  AuthSessionDocument,
+  AuthSessionModel,
+  GrantType,
+  SessionType,
+} from './entities/auth-session.entity';
 
 @Injectable()
 export class AuthService {
@@ -35,12 +44,77 @@ export class AuthService {
     @InjectModel(AuthModel.name)
     private AuthDocument: Model<AuthDocument>,
 
+    // inject model
+    @InjectModel(AuthSessionModel.name)
+    private AuthSessionDocument: Model<AuthSessionDocument>,
+
     // inject service
     private userService: UserService,
 
     // inject hashing service
     private hashingService: HashingService,
+
+    // inject jwt service
+    private jwtService: JwtService,
+
+    // inject jwt options
+    private jwtOptions: Jwt,
   ) {}
+
+  private async generateChecksum(data: JwtSignedData) {
+    return this.hashingService
+      .getHasher(HashingAlgorithm.BCrypt)
+      .hash(JSON.stringify(data));
+  }
+
+  async generateAccessToken(
+    audience: string,
+    { authId, user }: { authId: string; user: UserDocument },
+    sessionType = SessionType.Auth,
+  ) {
+    const payload = {
+      signedData: {
+        uid: user.id,
+        em: user.email,
+        un: user.username,
+        scope: user.roles,
+        verified: user.isEmailVerified,
+        enabled: user.isEnabled,
+      },
+    } as JwtSignedData;
+
+    const checksum = await this.generateChecksum(payload);
+
+    const sessionObj = new this.AuthSessionDocument({
+      authId,
+      authorizerId: user.id,
+      userId: user.id,
+      grantType: GrantType.Self,
+      checksum,
+      sessionType,
+      expiresIn: this.jwtOptions.getSignInOptions().expiresIn,
+    });
+
+    const session = await sessionObj.save();
+
+    const tokenIdentity = {
+      typ: 'Bearer',
+      azp: authId,
+      acr: '1',
+      sid: session.id,
+    };
+
+    return {
+      accessToken: this.jwtService.sign(
+        { ...payload, ...tokenIdentity } as JwtPayload,
+        {
+          ...this.jwtOptions.getSignInOptions(audience),
+          subject: session.checksum,
+          jwtid: session.id,
+        },
+      ),
+    };
+  }
 
   getAuthEntities(userId: string) {
     return this.AuthDocument.find({ userId });
@@ -63,14 +137,34 @@ export class AuthService {
     const user = await this.userService.findByEmailOrUsername(query);
     if (!user) throw new UnauthorizedException();
 
-    const { credentials }: { credentials: WalletCredential } =
+    const { id, credential }: { id: string; credential: WalletCredential } =
       await this.AuthDocument.findOne({
         userId: user.id,
         type: authType,
       });
 
-    if (!this.verifyWalletSignature(authType, walletCredentialDto, credentials))
+    if (!this.verifyWalletSignature(authType, walletCredentialDto, credential))
       throw new UnauthorizedException();
+
+    return { authId: id, user };
+  }
+
+  async validateUserWithJwtCredential(jwtPayload: JwtPayload) {
+    const user = await this.userService.findById(jwtPayload.signedData.uid);
+    if (!user) throw new UnauthorizedException();
+
+    const session = await this.AuthSessionDocument.findById(jwtPayload.sid);
+    if (!session) throw new UnauthorizedException();
+
+    const isVerified = await this.hashingService
+      .getHasher(HashingAlgorithm.BCrypt)
+      .compare(
+        JSON.stringify({ signedData: jwtPayload.signedData }),
+        session.checksum,
+      );
+
+    if (!isVerified) throw new UnauthorizedException();
+
     return user;
   }
 
@@ -78,21 +172,25 @@ export class AuthService {
     const user = await this.userService.findByEmailOrUsername(query);
     if (!user) throw new UnauthorizedException();
 
-    const { credentials }: { credentials: PasswordCredential } =
-      await this.AuthDocument.findOne({
-        userId: user.id,
-        type: AuthType.Password,
-      });
+    const auth = await this.AuthDocument.findOne({
+      userId: user.id,
+      type: AuthType.Password,
+    });
 
-    if (credentials.algorithm !== HashingAlgorithm.BCrypt)
+    const { id, credential } = auth as {
+      id: string;
+      credential: PasswordCredential;
+    };
+
+    if (credential.algorithm !== HashingAlgorithm.BCrypt)
       throw new UnauthorizedException();
 
-    const hasher = this.hashingService.getHasher(credentials.algorithm);
+    const hasher = this.hashingService.getHasher(credential.algorithm);
 
-    const isHashValid = await hasher.compare(password, credentials.password);
+    const isHashValid = await hasher.compare(password, credential.password);
     if (!isHashValid) throw new UnauthorizedException();
 
-    return user;
+    return { authId: id, user };
   }
 
   async signUpUser(registrationDto: RegistrationAuthDto) {

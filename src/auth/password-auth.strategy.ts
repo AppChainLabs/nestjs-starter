@@ -1,11 +1,6 @@
 import { Strategy } from 'passport-custom';
 import { PassportStrategy } from '@nestjs/passport';
-import {
-  Injectable,
-  UnauthorizedException,
-  Request,
-  Req,
-} from '@nestjs/common';
+import { Injectable, Request, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserDocument } from '../user/entities/user.entity';
 
@@ -22,19 +17,17 @@ export class PasswordAuthStrategy extends PassportStrategy(
     super();
   }
 
-  async validate(@Req() req: Request): Promise<UserDocument> {
+  async validate(
+    @Req() req: Request,
+  ): Promise<{ authId: string; user: UserDocument }> {
     const { username, password } = req.body as unknown as {
       username: string;
       password: string;
     };
 
-    const user = await this.authService.validateUserWithPasswordCredential(
+    return this.authService.validateUserWithPasswordCredential(
       username,
       password,
     );
-    if (!user) {
-      throw new UnauthorizedException();
-    }
-    return user;
   }
 }
