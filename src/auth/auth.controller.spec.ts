@@ -13,7 +13,7 @@ import {
   AuthModelSchema,
   AuthSessionModel,
 } from './entities/auth-session.entity';
-import { JwtModule, JwtModuleOptions, JwtService } from '@nestjs/jwt';
+import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 describe('AuthController', () => {
