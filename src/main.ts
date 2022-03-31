@@ -5,6 +5,18 @@ import {
 } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
+import { AllExceptionsFilter } from './exception.filter';
+
+const createMainAppHandler = async (module, adapter) => {
+  return NestFactory.create<NestFastifyApplication>(module, adapter);
+};
+
+export const globalApply = (app) => {
+  // inject pipe
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.useGlobalFilters(new AllExceptionsFilter());
+};
 
 async function bootstrap() {
   const CORS_OPTIONS = {
@@ -25,24 +37,36 @@ async function bootstrap() {
   const adapter = new FastifyAdapter();
   adapter.enableCors(CORS_OPTIONS);
 
-  const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    adapter,
-  );
+  const app = await createMainAppHandler(AppModule, adapter);
 
-  const config = new DocumentBuilder()
-    .setTitle('A8 Broker API')
-    .setDescription('Todo: update description')
-    .setVersion('1.0')
-    .addTag('Ancient8')
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  globalApply(app);
 
-  if (process.env.NODE_ENV === 'production') {
-    await app.listen(process.env.PORT || 5001, process.env.HOST || '0.0.0.0');
-  } else {
-    await app.listen(process.env.PORT || 5001);
+  if (process.env.NODE_ENV !== 'test') {
+    const config = new DocumentBuilder()
+      .setTitle('A8 Broker API')
+      .setDescription('Todo: update description')
+      .setVersion('1.0')
+      .addTag('Ancient8')
+      .addBearerAuth(
+        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+        'access-token',
+      )
+      .build();
+    const document = SwaggerModule.createDocument(app, config, {
+      operationIdFactory: (controllerKey: string, methodKey: string) =>
+        methodKey,
+    });
+
+    SwaggerModule.setup('api', app, document);
+
+    if (process.env.NODE_ENV === 'production') {
+      await app.listen(process.env.PORT || 5001, process.env.HOST || '0.0.0.0');
+    } else {
+      await app.listen(process.env.PORT || 5001);
+    }
   }
+
+  return app;
 }
+
 bootstrap();

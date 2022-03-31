@@ -4,40 +4,44 @@ import { Injectable } from '@nestjs/common';
 import { UserModel } from '../../user/entities/user.entity';
 
 export enum AuthType {
-  EVMChain = 'AuthType::EVMChain',
-  Solana = 'AuthType::Solana',
-  Password = 'AuthType::Password',
+  EVMChain = 'AUTH_TYPE::EVM_CHAIN',
+  Solana = 'AUTH_TYPE::SOLANA',
+  Password = 'AUTH_TYPE::PASSWORD',
+}
+
+export enum HashingAlgorithm {
+  BCrypt = 'HASH_ALGO::BCRYPT',
 }
 
 export type WalletCredential = {
   walletAddress: string;
-  signedData: string;
 };
 
 export type PasswordCredential = {
-  passwordHash: string;
-  algorithm: string;
+  password: string;
+  algorithm: HashingAlgorithm;
 };
 
 export class Auth {
   public userId: string;
   public type: AuthType;
-  public credentials: WalletCredential | PasswordCredential;
+  public credential: WalletCredential | PasswordCredential;
 }
 
 @Injectable()
-@Schema()
-export class AuthModel extends Auth {
+@Schema({ timestamps: true, autoIndex: true })
+export class AuthModel implements Auth {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: () => UserModel })
   userId: string;
 
   @Prop({ type: Object })
-  credentials: WalletCredential | PasswordCredential;
+  credential: WalletCredential | PasswordCredential;
 
   @Prop({ type: String, enum: AuthType })
   type: AuthType;
 }
 
 export const AuthSchema = SchemaFactory.createForClass(AuthModel);
+AuthSchema.index({ type: 1, userId: 1, credential: 1 }, { unique: true });
 
 export type AuthDocument = Auth & Document;

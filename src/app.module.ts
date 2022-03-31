@@ -4,45 +4,46 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthController } from './auth/auth.controller';
-import { UserService } from './user/user.service';
-import { UserController } from './user/user.controller';
 import { UserModule } from './user/user.module';
 import { EmailModule } from './email/email.module';
 import { AuthModule } from './auth/auth.module';
-import { UserModel, UserSchema } from './user/entities/user.entity';
-import { AuthService } from './auth/auth.service';
-import { AuthModel, AuthSchema } from './auth/entities/auth.entity';
+import { getMemoryServerMongoUri } from './helper';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
     // On top
     ConfigModule.forRoot(),
 
+    ThrottlerModule.forRoot({
+      ttl: 60,
+      limit: 100,
+    }),
+
     // Then db
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        console.log(configService.get<string>('MONGO_URL'));
+        const env = configService.get<string>('NODE_ENV');
+
+        let uri;
+
+        if (env === 'test') uri = await getMemoryServerMongoUri();
+        else uri = configService.get<string>('MONGO_URL');
+
         return {
-          uri: configService.get<string>('MONGO_URL'),
+          uri,
         };
       },
       inject: [ConfigService],
     }),
 
-    // Inject db model
-    MongooseModule.forFeature([
-      { name: UserModel.name, schema: UserSchema },
-      { name: AuthModel.name, schema: AuthSchema },
-    ]),
-
     // Import other modules
-    AuthModule,
     UserModule,
+    AuthModule,
     EmailModule,
   ],
-  controllers: [AppController, AuthController, UserController],
-  providers: [AuthService, AppService, UserService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

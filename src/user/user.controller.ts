@@ -7,12 +7,26 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
+  Optional,
+  SetMetadata,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
+
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { RolesGuard } from '../auth/roles-guard.guard';
+import { UserRole } from './entities/user.entity';
+import { RestrictJwtSessionGuard } from '../auth/restrict-jwt-session.guard';
+import { SessionType } from '../auth/entities/auth-session.entity';
 
-@Controller('user')
+@ApiTags('user')
+@Controller('api/user')
+@UseGuards(AuthGuard('jwt'), RolesGuard, RestrictJwtSessionGuard)
+@SetMetadata('sessionType', [SessionType.Auth])
+@SetMetadata('roles', [UserRole.SystemAdmin])
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -26,23 +40,23 @@ export class UserController {
     @Query('searchQuery') searchQuery: string,
     @Query('limit') limit: number,
     @Query('skip') skip: number,
-    @Query('sort') sort: string,
+    @Optional() @Query('sort') sort = '-createdAt',
   ) {
     return this.userService.findAll(searchQuery, limit, skip, sort);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  @Get(':user_id')
+  findOne(@Param('user_id') id: string) {
     return this.userService.findById(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  @Patch(':user_id')
+  update(@Param('user_id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
+  @Delete(':user_id')
+  remove(@Param('user_id') id: string) {
     return this.userService.remove(id);
   }
 }

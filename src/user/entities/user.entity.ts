@@ -7,7 +7,7 @@ export class User {
   email: string;
   displayName: string;
   avatar: string;
-  role: string[];
+  roles: string[];
   isEmailVerified: boolean;
   isEnabled: boolean;
 }
@@ -18,12 +18,12 @@ export enum UserRole {
 }
 
 @Injectable()
-@Schema()
-export class UserModel extends User {
-  @Prop()
+@Schema({ timestamps: true })
+export class UserModel implements User {
+  @Prop({ type: String })
   username: string;
 
-  @Prop()
+  @Prop({ type: String })
   email: string;
 
   @Prop()
@@ -33,7 +33,7 @@ export class UserModel extends User {
   avatar: string;
 
   @Prop({ type: Array, enum: UserRole, default: [UserRole.User] })
-  role: string[];
+  roles: string[];
 
   @Prop()
   isEmailVerified: boolean;
@@ -43,5 +43,9 @@ export class UserModel extends User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(UserModel);
+
+UserSchema.index({ username: 1 }, { unique: true });
+UserSchema.index({ email: 1 }, { unique: true });
+UserSchema.index({ email: 1, username: 1 }, { unique: true });
 
 export type UserDocument = User & Document;

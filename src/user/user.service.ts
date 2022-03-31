@@ -17,6 +17,12 @@ export class UserService {
     return user.save();
   }
 
+  findByEmailOrUsername(query: string) {
+    return this.UserDocument.findOne({
+      $or: [{ email: query }, { username: query }],
+    });
+  }
+
   findAll(searchQuery: string, limit: number, skip: number, sort: string) {
     const reg = new RegExp(searchQuery, 'i');
     return this.UserDocument.find(
@@ -33,7 +39,7 @@ export class UserService {
   }
 
   findById(id: string) {
-    return this.UserDocument.findOne({ id });
+    return this.UserDocument.findById(id);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
