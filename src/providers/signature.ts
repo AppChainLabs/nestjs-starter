@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { sign } from 'tweetnacl';
 import * as bs from 'bs58';
-import web3 from 'web3';
 
 import { AuthType } from '../auth/entities/auth.entity';
-import Web3 from 'web3';
 
 @Injectable()
 export class SignatureService {
