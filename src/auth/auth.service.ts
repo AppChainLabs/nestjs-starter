@@ -79,6 +79,7 @@ export class AuthService {
         scope: user.roles,
         verified: user.isEmailVerified,
         enabled: user.isEnabled,
+        sessionType,
       },
     } as JwtSignedData;
 
