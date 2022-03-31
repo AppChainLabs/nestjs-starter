@@ -18,7 +18,6 @@ import { LoginAuthDto } from './dto/login-auth.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { WalletAuthStrategy } from './wallet-auth.strategy';
 import { PasswordAuthStrategy } from './password-auth.strategy';
-import { JwtAuthGuard } from './jwt-guard.guard';
 import { UserDocument } from '../user/entities/user.entity';
 
 @ApiTags('auth')
@@ -50,14 +49,14 @@ export class AuthController {
     return this.authService.signUpUser(registrationDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get('/profile')
   @ApiBearerAuth('Bearer')
   getProfile(@Request() req) {
     return req.user;
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Post('connect-wallet')
   connectWallet(@Body() createAuthDto: CreateAuthDto, @Request() req: Request) {
     const { user } = req as unknown as { user: UserDocument };
@@ -70,7 +69,7 @@ export class AuthController {
   }
 
   @Delete(':user_id/:auth_id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   deleteEntity(
     @Param('auth_id') id: string,
     @Param('user_id') user_id: string,
