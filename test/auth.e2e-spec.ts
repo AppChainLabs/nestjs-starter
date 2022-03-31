@@ -52,8 +52,6 @@ describe('/api/auth/sign-up (e2e)', () => {
       .send(userPayload)
       .set('Accept', 'application/json');
 
-    console.log(response.body);
-
     expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
   });
 });
