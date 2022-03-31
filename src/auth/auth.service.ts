@@ -68,7 +68,7 @@ export class AuthService {
 
   async generateAccessToken(
     audience: string,
-    { authId, user }: { authId: string; user: UserDocument },
+    { authEntity, user }: { authEntity: AuthDocument; user: UserDocument },
     sessionType = SessionType.Auth,
   ) {
     const payload = {
@@ -85,7 +85,7 @@ export class AuthService {
     const checksum = await this.generateChecksum(payload);
 
     const sessionObj = new this.AuthSessionDocument({
-      authId,
+      authId: authEntity.id,
       authorizerId: user.id,
       userId: user.id,
       grantType: GrantType.Self,
@@ -98,7 +98,7 @@ export class AuthService {
 
     const tokenIdentity = {
       typ: 'Bearer',
-      azp: authId,
+      azp: authEntity.id,
       acr: '1',
       sid: session.id,
     };

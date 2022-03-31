@@ -9,6 +9,7 @@ import {
 import { AuthService } from './auth.service';
 import { UserDocument } from '../user/entities/user.entity';
 import {
+  AuthDocument,
   AuthType,
   HashingAlgorithm,
   PasswordCredential,
@@ -45,7 +46,7 @@ export class PasswordAuthStrategy extends PassportStrategy(
       user.id,
     );
 
-    const { id, credential } = auth as {
+    const { credential } = auth as {
       id: string;
       credential: PasswordCredential;
     };
@@ -58,12 +59,12 @@ export class PasswordAuthStrategy extends PassportStrategy(
     const isHashValid = await hasher.compare(password, credential.password);
     if (!isHashValid) throw new UnauthorizedException();
 
-    return { authId: id, user };
+    return { authEntity: auth, user };
   }
 
   async validate(
     @Req() req: Request,
-  ): Promise<{ authId: string; user: UserDocument }> {
+  ): Promise<{ authEntity: AuthDocument; user: UserDocument }> {
     const { username, password } = req.body as unknown as {
       username: string;
       password: string;

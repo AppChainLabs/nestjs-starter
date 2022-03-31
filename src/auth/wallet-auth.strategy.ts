@@ -8,7 +8,11 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserDocument } from '../user/entities/user.entity';
-import { AuthType, WalletCredential } from './entities/auth.entity';
+import {
+  AuthDocument,
+  AuthType,
+  WalletCredential,
+} from './entities/auth.entity';
 import { WalletCredentialAuthDto } from './dto/wallet-credential-auth.dto';
 import { UserService } from '../user/user.service';
 
@@ -36,26 +40,26 @@ export class WalletAuthStrategy extends PassportStrategy(
     const user = await this.userService.findByEmailOrUsername(query);
     if (!user) throw new UnauthorizedException();
 
-    const { id, credential } = (await this.authService.findAuthEntityWithUserId(
+    const authEntity = (await this.authService.findAuthEntityWithUserId(
       authType,
       user.id,
-    )) as { id: string; credential: WalletCredential };
+    )) as AuthDocument;
 
     if (
       !this.authService.verifyWalletSignature(
         authType,
         walletCredentialDto,
-        credential,
+        authEntity.credential as WalletCredential,
       )
     )
       throw new UnauthorizedException();
 
-    return { authId: id, user };
+    return { authEntity: authEntity, user };
   }
 
   async validate(
     @Req() req: Request,
-  ): Promise<{ authId: string; user: UserDocument }> {
+  ): Promise<{ authEntity: AuthDocument; user: UserDocument }> {
     const { username, authType, walletCredentialDto } = req.body as unknown as {
       username: string;
       authType: AuthType;
