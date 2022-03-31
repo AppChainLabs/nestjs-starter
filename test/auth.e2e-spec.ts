@@ -76,8 +76,6 @@ describe('/api/auth/sign-up (e2e)', () => {
     expect(response.statusCode).toEqual(HttpStatus.CREATED);
     expect(response.body.accessToken).toBeTruthy();
 
-    console.log(response.body.accessToken);
-
     const profileResponse = await request(app.getHttpServer())
       .get('/api/auth/profile')
       .set('Content-Type', 'application/json')
