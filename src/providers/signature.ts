@@ -4,6 +4,7 @@ import * as bs from 'bs58';
 import web3 from 'web3';
 
 import { AuthType } from '../auth/entities/auth.entity';
+import Web3 from 'web3';
 
 @Injectable()
 export class SignatureService {
@@ -40,8 +41,10 @@ class SolanaSigner implements Signer {
 
 class EVMSigner implements Signer {
   verify(message: string, signedData: string, walletAddress): boolean {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const Web3 = require('web3');
+    const web3 = new Web3();
+
     const address = web3.eth.accounts.recover(message, signedData, false);
     return address === walletAddress;
   }
