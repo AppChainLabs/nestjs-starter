@@ -25,8 +25,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
         errorMessage: message,
       };
 
-      console.log({ errorPayload });
-
       return response.status(statusCode).json(errorPayload);
     };
 
