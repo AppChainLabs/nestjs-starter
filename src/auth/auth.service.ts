@@ -156,7 +156,8 @@ export class AuthService {
     const session = await this.AuthSessionDocument.findById(jwtPayload.sid);
     if (!session) throw new UnauthorizedException();
 
-    if (session.userId !== user.id) throw new UnauthorizedException();
+    if (session.userId.toString() !== user.id.toString())
+      throw new UnauthorizedException();
 
     const isChecksumVerified = await this.hashingService
       .getHasher(HashingAlgorithm.BCrypt)

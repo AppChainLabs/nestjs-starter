@@ -5,10 +5,10 @@ import { HttpStatus } from '@nestjs/common';
 
 export const initUserFixtures = async (app) => {
   const userPayload = {
-    avatar: 'https://google.com/a.png',
-    email: 'test@gmail.com',
-    username: 'test',
-    displayName: 'abc xyz',
+    avatar: 'https://google.com/userA.png',
+    email: 'userA@userA.userA',
+    username: 'userA',
+    displayName: 'userA displayName',
     type: AuthType.Password,
     credential: {
       password: '123456',
@@ -17,8 +17,8 @@ export const initUserFixtures = async (app) => {
 
   const response = await request(app.getHttpServer())
     .post('/api/auth/sign-up')
-    .send(userPayload)
-    .set('Accept', 'application/json');
+    .set('Accept', 'application/json')
+    .send(userPayload);
 
   expect(response.statusCode).toEqual(HttpStatus.CREATED);
   expect(response.body._id).toBeTruthy();

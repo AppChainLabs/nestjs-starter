@@ -8,12 +8,12 @@ import { TestHelper } from './test.helper';
 describe('/api/auth/sign-up (e2e)', () => {
   const testHelper = new TestHelper();
 
-  beforeAll(async () => {
-    await testHelper.beforeAll();
+  beforeEach(async () => {
+    await testHelper.bootTestingApp();
   });
 
-  afterAll(async () => {
-    await testHelper.afterAll();
+  afterEach(async () => {
+    await testHelper.shutDownTestingApp();
   });
 
   it('invalid payload, should fail to signup', async () => {
@@ -35,5 +35,55 @@ describe('/api/auth/sign-up (e2e)', () => {
       .set('Accept', 'application/json');
 
     expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
+  });
+
+  it('should signup successfully', async () => {
+    const userPayload = {
+      avatar: 'https://google.com/image.png',
+      email: 'user@user.user',
+      username: 'user',
+      displayName: 'user user',
+      type: AuthType.Password,
+      credential: {
+        password: '123456',
+      },
+    } as RegistrationAuthDto;
+
+    const app = testHelper.app;
+    const response = await request(app.getHttpServer())
+      .post('/api/auth/sign-up')
+      .send(userPayload)
+      .set('Accept', 'application/json');
+
+    expect(response.statusCode).toEqual(HttpStatus.CREATED);
+    expect(response.body._id).toBeTruthy();
+  });
+
+  it('should login and retrieve successfully', async () => {
+    const loginPayload = {
+      username: 'userA@userA.userA',
+      password: '123456',
+    };
+
+    const app = testHelper.app;
+
+    const response = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .send(loginPayload);
+
+    expect(response.statusCode).toEqual(HttpStatus.CREATED);
+    expect(response.body.accessToken).toBeTruthy();
+
+    const profileResponse = await request(app.getHttpServer())
+      .get('/api/auth/profile')
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${response.body.accessToken}`)
+      .send();
+
+    expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
+    expect(profileResponse.body.email).toEqual(loginPayload.username);
   });
 });

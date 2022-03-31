@@ -34,7 +34,7 @@ export class AuthSessionModel extends AuthSession {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: () => AuthModel })
   readonly authId: string;
 
-  @Prop({ type: String })
+  @Prop({ type: MongooseSchema.Types.ObjectId })
   readonly authorizerId: string;
 
   @Prop({ type: String })

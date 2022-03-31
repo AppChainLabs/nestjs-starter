@@ -11,7 +11,7 @@ export class TestHelper {
   public app: INestApplication;
   public moduleFixture: TestingModule;
 
-  public async beforeAll() {
+  public async bootTestingApp() {
     this.moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -25,11 +25,15 @@ export class TestHelper {
     await this.applyFixtures();
   }
 
-  public async afterAll() {
+  public async shutDownTestingApp() {
     await mongoose.connection.close();
     await closeInMongodConnection();
     await this.moduleFixture.close();
     await this.app.close();
+  }
+
+  public getModule<Module>(moduleClass) {
+    return this.moduleFixture.get<Module>(moduleClass);
   }
 
   private async applyFixtures() {
