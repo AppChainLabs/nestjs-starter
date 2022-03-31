@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { EmailModule } from './email/email.module';
 import { AuthModule } from './auth/auth.module';
+import { getMemoryServerMongoUri } from './helper';
 
 @Module({
   imports: [
@@ -17,9 +18,15 @@ import { AuthModule } from './auth/auth.module';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        console.log(configService.get<string>('MONGO_URL'));
+        const env = configService.get<string>('NODE_ENV');
+
+        let uri;
+
+        if (env === 'test') uri = await getMemoryServerMongoUri();
+        else uri = configService.get<string>('MONGO_URL');
+
         return {
-          uri: configService.get<string>('MONGO_URL'),
+          uri,
         };
       },
       inject: [ConfigService],

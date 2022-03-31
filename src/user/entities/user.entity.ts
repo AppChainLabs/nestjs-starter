@@ -19,7 +19,7 @@ export enum UserRole {
 
 @Injectable()
 @Schema({ timestamps: true })
-export class UserModel extends User {
+export class UserModel implements User {
   @Prop({ unique: true, isRequired: false })
   username: string;
 
