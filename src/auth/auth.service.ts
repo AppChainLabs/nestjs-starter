@@ -3,7 +3,6 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
@@ -120,6 +119,14 @@ export class AuthService {
     return this.AuthDocument.find({ userId });
   }
 
+  findAuthEntityWithUserId(authType: AuthType, userId: string) {
+    return this.AuthDocument.findOne({ type: authType, userId });
+  }
+
+  findAuthSessionById(authSessionId: string) {
+    return this.AuthSessionDocument.findById(authSessionId);
+  }
+
   verifyWalletSignature(
     authType: AuthType,
     walletCredentialDto: WalletCredentialAuthDto,
@@ -127,73 +134,6 @@ export class AuthService {
   ) {
     const signer = new SignatureService().getSigner(authType);
     return signer.verify(walletCredentialDto, walletCredential);
-  }
-
-  async validateUserWithWalletCredential(
-    query: string,
-    authType: AuthType,
-    walletCredentialDto: WalletCredentialAuthDto,
-  ) {
-    const user = await this.userService.findByEmailOrUsername(query);
-    if (!user) throw new UnauthorizedException();
-
-    const { id, credential }: { id: string; credential: WalletCredential } =
-      await this.AuthDocument.findOne({
-        userId: user.id,
-        type: authType,
-      });
-
-    if (!this.verifyWalletSignature(authType, walletCredentialDto, credential))
-      throw new UnauthorizedException();
-
-    return { authId: id, user };
-  }
-
-  async validateUserWithJwtCredential(jwtPayload: JwtPayload) {
-    const user = await this.userService.findById(jwtPayload.signedData.uid);
-    if (!user) throw new UnauthorizedException();
-
-    const session = await this.AuthSessionDocument.findById(jwtPayload.sid);
-    if (!session) throw new UnauthorizedException();
-
-    if (session.userId.toString() !== user.id.toString())
-      throw new UnauthorizedException();
-
-    const isChecksumVerified = await this.hashingService
-      .getHasher(HashingAlgorithm.BCrypt)
-      .compare(
-        JSON.stringify({ signedData: jwtPayload.signedData }),
-        session.checksum,
-      );
-
-    if (!isChecksumVerified) throw new UnauthorizedException();
-
-    return user;
-  }
-
-  async validateUserWithPasswordCredential(query: string, password: string) {
-    const user = await this.userService.findByEmailOrUsername(query);
-    if (!user) throw new UnauthorizedException();
-
-    const auth = await this.AuthDocument.findOne({
-      userId: user.id,
-      type: AuthType.Password,
-    });
-
-    const { id, credential } = auth as {
-      id: string;
-      credential: PasswordCredential;
-    };
-
-    if (credential.algorithm !== HashingAlgorithm.BCrypt)
-      throw new UnauthorizedException();
-
-    const hasher = this.hashingService.getHasher(credential.algorithm);
-
-    const isHashValid = await hasher.compare(password, credential.password);
-    if (!isHashValid) throw new UnauthorizedException();
-
-    return { authId: id, user };
   }
 
   async signUpUser(registrationDto: RegistrationAuthDto) {
