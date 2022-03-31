@@ -53,8 +53,6 @@ export class WalletAuthStrategy extends PassportStrategy(
       authEntity.credential as WalletCredential,
     );
 
-    console.log({ isCredentialVerified });
-
     if (!isCredentialVerified) throw new UnauthorizedException();
 
     return { authEntity, user };
