@@ -123,7 +123,8 @@ export class AuthService {
     return this.AuthDocument.findOne({ type: authType, userId });
   }
 
-  findAuthSessionById(authSessionId: string) {
+  // weird bug from Jetbrains
+  public async findAuthSessionById(authSessionId: string): Promise<any> {
     return this.AuthSessionDocument.findById(authSessionId);
   }
 
