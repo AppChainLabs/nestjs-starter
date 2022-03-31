@@ -32,6 +32,10 @@ import {
   GrantType,
   SessionType,
 } from './entities/auth-session.entity';
+import {
+  AuthChallengeDocument,
+  AuthChallengeModel,
+} from './entities/auth-challenge.entity';
 
 @Injectable()
 export class AuthService {
@@ -47,6 +51,10 @@ export class AuthService {
     @InjectModel(AuthSessionModel.name)
     private AuthSessionDocument: Model<AuthSessionDocument>,
 
+    // inject model
+    @InjectModel(AuthChallengeModel.name)
+    private AuthChallengeDocument: Model<AuthChallengeDocument>,
+
     // inject service
     private userService: UserService,
 
@@ -60,10 +68,29 @@ export class AuthService {
     private jwtOptions: Jwt,
   ) {}
 
-  private async generateChecksum(data: JwtSignedData) {
+  private async generateChecksum(data: any) {
     return this.hashingService
       .getHasher(HashingAlgorithm.BCrypt)
       .hash(JSON.stringify(data));
+  }
+
+  async generateAuthChallenge(target: string) {
+    const checksum = await this.generateChecksum(target);
+
+    const currentDateTime = new Date();
+    const expiredDate = currentDateTime.setTime(
+      currentDateTime.getTime() + 60 * 1000,
+    );
+
+    const message = `Sign in with ${target}.\nChallenge hash: ${checksum}.\nDate: ${currentDateTime.toISOString()}.`;
+
+    const authChallenge = new this.AuthChallengeDocument({
+      walletAddress: target,
+      expiredDate: expiredDate,
+      message: message,
+    });
+
+    return authChallenge.save();
   }
 
   async generateAccessToken(
@@ -120,22 +147,72 @@ export class AuthService {
     return this.AuthDocument.find({ userId });
   }
 
-  findAuthEntityWithUserId(authType: AuthType, userId: string) {
-    return this.AuthDocument.findOne({ type: authType, userId });
+  findAuthEntityWithUserId(
+    authType: AuthType,
+    userId: string,
+    walletAddress = undefined,
+  ) {
+    return this.AuthDocument.findOne({
+      type: authType,
+      userId,
+      'credential.walletAddress':
+        authType === AuthType.Password ? undefined : walletAddress,
+    });
   }
 
   // weird bug from Jetbrains
-  public async findAuthSessionById(authSessionId: string): Promise<any> {
+  findAuthSessionById(authSessionId: string): any {
     return this.AuthSessionDocument.findById(authSessionId);
   }
 
-  verifyWalletSignature(
+  findAuthChallengeById(id: string) {
+    return this.AuthChallengeDocument.findById(id);
+  }
+
+  async verifyWalletSignature(
     authType: AuthType,
     walletCredentialDto: WalletCredentialAuthDto,
     walletCredential: WalletCredential,
   ) {
+    // Check for valid auth challenge
+    const authChallenge = await this.findAuthChallengeById(
+      walletCredentialDto.authChallengeId,
+    );
+
+    if (!authChallenge) {
+      return false;
+    }
+
+    if (authChallenge.isResolved) {
+      return false;
+    }
+
+    if (new Date().getTime() > new Date(authChallenge.expiredDate).getTime()) {
+      return false;
+    }
+
+    if (walletCredentialDto.walletAddress !== authChallenge.walletAddress) {
+      return false;
+    }
+
+    if (walletCredentialDto.walletAddress !== walletCredential.walletAddress) {
+      return false;
+    }
+
     const signer = new SignatureService().getSigner(authType);
-    return signer.verify(walletCredentialDto, walletCredential);
+    const isVerified = signer.verify(
+      authChallenge.message,
+      walletCredentialDto.signedData,
+      walletCredential.walletAddress,
+    );
+
+    if (isVerified) {
+      // now to mark the challenge resolved
+      authChallenge.isResolved = true;
+      await authChallenge.save();
+    }
+
+    return isVerified;
   }
 
   async signUpUser(registrationDto: RegistrationAuthDto) {
@@ -195,11 +272,15 @@ export class AuthService {
     } else {
       const credentialDto = createAuthDto.credential as WalletCredentialAuthDto;
 
-      if (
-        !this.verifyWalletSignature(createAuthDto.type, credentialDto, {
+      const isCredentialVerified = await this.verifyWalletSignature(
+        createAuthDto.type,
+        credentialDto,
+        {
           walletAddress: credentialDto.walletAddress,
-        })
-      ) {
+        },
+      );
+
+      if (!isCredentialVerified) {
         throw new BadRequestException('AUTH::CREATE::SIGNATURE_NOT_MATCHED');
       }
 

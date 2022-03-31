@@ -43,18 +43,18 @@ export class WalletAuthStrategy extends PassportStrategy(
     const authEntity = (await this.authService.findAuthEntityWithUserId(
       authType,
       user.id,
+      walletCredentialDto.walletAddress,
     )) as AuthDocument;
 
-    if (
-      !this.authService.verifyWalletSignature(
-        authType,
-        walletCredentialDto,
-        authEntity.credential as WalletCredential,
-      )
-    )
-      throw new UnauthorizedException();
+    const isCredentialVerified = await this.authService.verifyWalletSignature(
+      authType,
+      walletCredentialDto,
+      authEntity.credential as WalletCredential,
+    );
 
-    return { authEntity: authEntity, user };
+    if (!isCredentialVerified) throw new UnauthorizedException();
+
+    return { authEntity, user };
   }
 
   async validate(

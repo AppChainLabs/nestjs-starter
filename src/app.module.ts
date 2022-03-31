@@ -8,11 +8,17 @@ import { UserModule } from './user/user.module';
 import { EmailModule } from './email/email.module';
 import { AuthModule } from './auth/auth.module';
 import { getMemoryServerMongoUri } from './helper';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
     // On top
     ConfigModule.forRoot(),
+
+    ThrottlerModule.forRoot({
+      ttl: 60,
+      limit: 100,
+    }),
 
     // Then db
     MongooseModule.forRootAsync({

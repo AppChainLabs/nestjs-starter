@@ -1,14 +1,15 @@
 import {
-  Controller,
-  Post,
+  BadRequestException,
   Body,
-  Param,
+  Controller,
   Delete,
-  UseGuards,
-  Request,
-  Get,
   ForbiddenException,
+  Get,
+  Param,
+  Post,
+  Request,
   SetMetadata,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -22,6 +23,7 @@ import { PasswordAuthStrategy } from './password-auth.strategy';
 import { UserDocument } from '../user/entities/user.entity';
 import { RestrictJwtSessionGuard } from './restrict-jwt-session.guard';
 import { SessionType } from './entities/auth-session.entity';
+import { AuthType } from './entities/auth.entity';
 
 @ApiTags('auth')
 @Controller('api/auth')
@@ -52,6 +54,11 @@ export class AuthController {
     return this.authService.signUpUser(registrationDto);
   }
 
+  @Post('/challenge/:target')
+  getAuthChallenge(@Param('target') target: string) {
+    return this.authService.generateAuthChallenge(target);
+  }
+
   @ApiBearerAuth('Bearer')
   @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
   @SetMetadata('sessionType', [SessionType.Auth])
@@ -72,6 +79,10 @@ export class AuthController {
 
     if (user.id.toString() !== createAuthDto.userId) {
       throw new ForbiddenException();
+    }
+
+    if (createAuthDto.type === AuthType.Password) {
+      throw new BadRequestException();
     }
 
     return this.authService.createAuthEntity(createAuthDto);

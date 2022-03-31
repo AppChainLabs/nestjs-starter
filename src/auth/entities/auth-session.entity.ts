@@ -27,7 +27,7 @@ class AuthSession {
 
 @Injectable()
 @Schema({ timestamps: true, autoIndex: true })
-export class AuthSessionModel extends AuthSession {
+export class AuthSessionModel implements AuthSession {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: () => UserModel })
   readonly userId: string;
 

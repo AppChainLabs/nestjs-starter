@@ -18,6 +18,10 @@ import {
   AuthModelSchema,
   AuthSessionModel,
 } from './entities/auth-session.entity';
+import {
+  AuthChallengeModel,
+  AuthChallengeSchema,
+} from './entities/auth-challenge.entity';
 
 @Module({
   controllers: [AuthController],
@@ -38,6 +42,7 @@ import {
       { name: UserModel.name, schema: UserSchema },
       { name: AuthModel.name, schema: AuthSchema },
       { name: AuthSessionModel.name, schema: AuthModelSchema },
+      { name: AuthChallengeModel.name, schema: AuthChallengeSchema },
     ]),
 
     JwtModule.registerAsync({

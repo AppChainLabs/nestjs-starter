@@ -8,5 +8,5 @@ export class WalletCredentialAuthDto {
   signedData: string;
 
   @IsString()
-  message: string;
+  authChallengeId: string;
 }
