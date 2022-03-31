@@ -42,6 +42,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     }
 
-    return responseMessage(exception.getResponse() as any);
+    try {
+      return responseMessage(exception.getResponse() as any);
+    } catch (e) {
+      return responseMessage({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: exception.message,
+        error: exception.name,
+      });
+    }
   }
 }
