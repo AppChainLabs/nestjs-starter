@@ -13,11 +13,11 @@ import { AuthService } from '../src/auth/auth.service';
 describe('/api/auth/sign-up (e2e)', () => {
   const testHelper = new TestHelper();
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     await testHelper.bootTestingApp();
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await testHelper.shutDownTestingApp();
   });
 
