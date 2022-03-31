@@ -7,7 +7,6 @@ import { TestHelper } from './test.helper';
 
 describe('/api/auth/sign-up (e2e)', () => {
   const testHelper = new TestHelper();
-  const app = testHelper.app;
 
   beforeAll(async () => {
     await testHelper.beforeAll();
@@ -29,6 +28,7 @@ describe('/api/auth/sign-up (e2e)', () => {
       },
     } as RegistrationAuthDto;
 
+    const app = testHelper.app;
     const response = await request(app.getHttpServer())
       .post('/api/auth/sign-up')
       .send(userPayload)
