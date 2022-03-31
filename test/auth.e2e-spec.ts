@@ -1,38 +1,20 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { HttpStatus, INestApplication } from '@nestjs/common';
-import mongoose from 'mongoose';
+import { HttpStatus } from '@nestjs/common';
 import * as request from 'supertest';
 
-import { AppModule } from '../src/app.module';
 import { AuthType } from '../src/auth/entities/auth.entity';
 import { RegistrationAuthDto } from '../src/auth/dto/registration-auth.dto';
-import { closeInMongodConnection } from '../src/helper';
-import { globalApply } from '../src/main';
-import { initUserFixtures } from './fixtures.test-helper';
+import { TestHelper } from './test.helper';
 
 describe('/api/auth/sign-up (e2e)', () => {
-  let app: INestApplication;
-  let moduleFixture: TestingModule;
+  const testHelper = new TestHelper();
+  const app = testHelper.app;
 
   beforeAll(async () => {
-    moduleFixture = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    globalApply(app);
-
-    await app.init();
-
-    // import fixtures
-    await initUserFixtures(app);
+    await testHelper.beforeAll();
   });
 
   afterAll(async () => {
-    await mongoose.connection.close();
-    await closeInMongodConnection();
-    await moduleFixture.close();
-    await app.close();
+    await testHelper.afterAll();
   });
 
   it('invalid payload, should fail to signup', async () => {
