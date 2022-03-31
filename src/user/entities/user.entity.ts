@@ -20,10 +20,10 @@ export enum UserRole {
 @Injectable()
 @Schema({ timestamps: true })
 export class UserModel implements User {
-  @Prop({ unique: true, isRequired: false })
+  @Prop({ type: String })
   username: string;
 
-  @Prop({ unique: true, isRequired: false })
+  @Prop({ type: String })
   email: string;
 
   @Prop()
@@ -43,5 +43,9 @@ export class UserModel implements User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(UserModel);
+
+UserSchema.index({ username: 1 }, { unique: true });
+UserSchema.index({ email: 1 }, { unique: true });
+UserSchema.index({ email: 1, username: 1 }, { unique: true });
 
 export type UserDocument = User & Document;

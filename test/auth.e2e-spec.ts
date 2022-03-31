@@ -100,7 +100,8 @@ describe('/api/auth/sign-up (e2e)', () => {
     const keypair = Keypair.generate();
     const publicKey = keypair.publicKey.toBase58();
 
-    // Step 2: Now to get http challenge
+    // Phase 1: Should sign up with solana successfully
+    // Step 1: Now to get http challenge
     const authChallengeResponse = await request(app.getHttpServer())
       .post(`/api/auth/challenge/${publicKey}`)
       .set('Content-Type', 'application/json')
@@ -110,7 +111,7 @@ describe('/api/auth/sign-up (e2e)', () => {
     expect(authChallengeResponse.body._id).toBeTruthy();
     expect(authChallengeResponse.body.message).toBeTruthy();
 
-    // Step 3: Sign data
+    // Step 2: Sign data
     const message = authChallengeResponse.body.message;
     const authChallengeId = authChallengeResponse.body._id;
 
@@ -118,8 +119,8 @@ describe('/api/auth/sign-up (e2e)', () => {
     const signedData = sign.detached(encodedMessage, keypair.secretKey);
     const encodedSignedMessage = bs.encode(signedData);
 
-    // Step 4: Sign up with credentials
-    const userPayload = {
+    // Step 3: Sign up with credentials
+    const signUpUserPayload = {
       avatar: 'https://google.com/image.png',
       email: 'userxyz@userxyz.userxyz',
       username: 'user',
@@ -132,15 +133,15 @@ describe('/api/auth/sign-up (e2e)', () => {
       },
     } as RegistrationAuthDto;
 
-    const response = await request(app.getHttpServer())
+    const signUpResponse = await request(app.getHttpServer())
       .post('/api/auth/sign-up')
-      .send(userPayload)
+      .send(signUpUserPayload)
       .set('Accept', 'application/json');
 
-    expect(response.statusCode).toEqual(HttpStatus.CREATED);
-    expect(response.body._id).toBeTruthy();
+    expect(signUpResponse.statusCode).toEqual(HttpStatus.CREATED);
+    expect(signUpResponse.body._id).toBeTruthy();
 
-    // Step 5: Just check again that the auth entity was created
+    // Step 4: Just check again that the auth entity was created
     const authService = testHelper.getModule<AuthService>(AuthService);
 
     const authChallenge = await authService.findAuthChallengeById(
@@ -151,12 +152,60 @@ describe('/api/auth/sign-up (e2e)', () => {
 
     const authEntity = await authService.findAuthEntityWithUserId(
       AuthType.Solana,
-      response.body._id,
+      signUpResponse.body._id,
       publicKey,
     );
     expect(authEntity._id).toBeTruthy();
     expect((authEntity.credential as WalletCredential).walletAddress).toEqual(
       publicKey,
     );
+
+    // Phase 2: Should login successfully using the above credentials, no need to assert for auth challenge response
+    // First get auth challenge
+    const loginAuthChallenge = await request(app.getHttpServer())
+      .post(`/api/auth/challenge/${publicKey}`)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json');
+
+    const loginMessage = loginAuthChallenge.body.message;
+    const loginAuthChallengeId = loginAuthChallenge.body._id;
+
+    const encodedLoginMessage = new TextEncoder().encode(loginMessage);
+    const signedLoginData = sign.detached(
+      encodedLoginMessage,
+      keypair.secretKey,
+    );
+    const encodedLoginSignedMessage = bs.encode(signedLoginData);
+
+    // Now to login
+    const userPayload = {
+      username: 'userxyz@userxyz.userxyz',
+      authType: AuthType.Solana,
+      credential: {
+        walletAddress: publicKey,
+        signedData: encodedLoginSignedMessage,
+        authChallengeId: loginAuthChallengeId,
+      },
+    };
+
+    const response = await request(app.getHttpServer())
+      .post('/api/auth/login-wallet')
+      .send(userPayload)
+      .set('Accept', 'application/json');
+
+    expect(response.statusCode).toEqual(HttpStatus.CREATED);
+    expect(response.body.accessToken).toBeTruthy();
+
+    // Now to use access token to get profile
+    const accessToken = response.body.accessToken;
+    const profileResponse = await request(app.getHttpServer())
+      .get('/api/auth/profile')
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
+    expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
+    expect(profileResponse.body.email).toEqual(userPayload.username);
   });
 });

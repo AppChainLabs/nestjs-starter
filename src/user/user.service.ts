@@ -39,7 +39,7 @@ export class UserService {
   }
 
   findById(id: string) {
-    return this.UserDocument.findOne({ id });
+    return this.UserDocument.findById(id);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {

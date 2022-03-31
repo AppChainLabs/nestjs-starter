@@ -10,5 +10,5 @@ export class LoginWalletAuthDto {
   authType: AuthType;
 
   @ValidateNested()
-  walletCredentialDto: WalletCredentialAuthDto;
+  credential: WalletCredentialAuthDto;
 }

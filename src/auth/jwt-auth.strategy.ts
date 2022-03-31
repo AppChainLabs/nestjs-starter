@@ -46,7 +46,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     if (!isChecksumVerified) throw new UnauthorizedException();
 
-    return { session: session, user };
+    return { session, user };
   }
 
   async validate(payload: JwtPayload) {

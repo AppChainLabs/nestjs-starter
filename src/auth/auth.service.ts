@@ -107,6 +107,7 @@ export class AuthService {
         verified: user.isEmailVerified,
         enabled: user.isEnabled,
         sessionType,
+        authType: authEntity.type,
       },
     } as JwtSignedData;
 
