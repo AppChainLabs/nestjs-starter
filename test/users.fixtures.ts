@@ -25,6 +25,35 @@ export const initUsersWithPasswordAuth = async (app) => {
 
   expect(response.statusCode).toEqual(HttpStatus.CREATED);
   expect(response.body._id).toBeTruthy();
+
+  const loginPayload = {
+    username: 'user@password.auth',
+    password: '123456',
+  };
+
+  const loginResponse = await request(app.getHttpServer())
+    .post('/api/auth/login')
+    .set('Content-Type', 'application/json')
+    .set('Accept', 'application/json')
+    .send(loginPayload);
+
+  expect(loginResponse.statusCode).toEqual(HttpStatus.CREATED);
+  expect(loginResponse.body.accessToken).toBeTruthy();
+
+  const profileResponse = await request(app.getHttpServer())
+    .get('/api/auth/profile')
+    .set('Content-Type', 'application/json')
+    .set('Accept', 'application/json')
+    .set('Authorization', `Bearer ${loginResponse.body.accessToken}`)
+    .send();
+
+  expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
+  expect(profileResponse.body.email).toEqual(loginPayload.username);
+
+  return {
+    email: 'user@password.auth',
+    password: '123456',
+  };
 };
 
 export const initUserWithSolanaAuth = async (app, authService) => {
@@ -136,6 +165,12 @@ export const initUserWithSolanaAuth = async (app, authService) => {
 
   expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
   expect(profileResponse.body.email).toEqual(userPayload.username);
+
+  return {
+    email: 'user@solana.auth',
+    privateKey: bs.encode(keypair.secretKey),
+    walletAddress: keypair.publicKey.toBase58(),
+  };
 };
 
 export const initUserWithEVMAuth = async (app, authService) => {
@@ -245,4 +280,10 @@ export const initUserWithEVMAuth = async (app, authService) => {
 
   expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
   expect(profileResponse.body.email).toEqual(userPayload.username);
+
+  return {
+    email: 'user@evm.auth',
+    privateKey: account.privateKey,
+    walletAddress: account.address,
+  };
 };

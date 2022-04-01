@@ -91,6 +91,21 @@ export class AuthController {
   @ApiBearerAuth('Bearer')
   @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
   @SetMetadata('sessionType', [SessionType.Auth])
+  @Get(':user_id/')
+  getAuthEntities(@Param('user_id') user_id: string, @Request() req) {
+    const session = req.user;
+
+    const { user } = session as unknown as { user: UserDocument };
+
+    if (user.id.toString() !== user_id) {
+      throw new ForbiddenException();
+    }
+    return this.authService.getAuthEntities(user_id);
+  }
+
+  @ApiBearerAuth('Bearer')
+  @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
+  @SetMetadata('sessionType', [SessionType.Auth])
   @Delete(':user_id/:auth_id')
   deleteEntity(
     @Param('auth_id') id: string,

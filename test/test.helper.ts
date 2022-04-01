@@ -17,6 +17,18 @@ export class TestHelper {
   public app: INestApplication;
   public moduleFixture: TestingModule;
 
+  public passwordAuthUser: { email: string; password: string };
+  public solanaAuthUser: {
+    email: string;
+    privateKey: string;
+    walletAddress: string;
+  };
+  public evmAuthUser: {
+    email: string;
+    privateKey: string;
+    walletAddress: string;
+  };
+
   public async bootTestingApp() {
     this.moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
@@ -43,14 +55,14 @@ export class TestHelper {
   }
 
   private async applyFixtures() {
-    await initUsersWithPasswordAuth(this.app);
+    this.passwordAuthUser = await initUsersWithPasswordAuth(this.app);
     await pause(0.5);
-    await initUserWithEVMAuth(
+    this.evmAuthUser = await initUserWithEVMAuth(
       this.app,
       this.getModule<AuthService>(AuthService),
     );
     await pause(0.5);
-    await initUserWithSolanaAuth(
+    this.solanaAuthUser = await initUserWithSolanaAuth(
       this.app,
       this.getModule<AuthService>(AuthService),
     );
