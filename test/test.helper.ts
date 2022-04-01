@@ -11,6 +11,7 @@ import {
   initUserWithSolanaAuth,
 } from './users.fixtures';
 import { AuthService } from '../src/auth/auth.service';
+import {pause} from "../src/utils";
 
 export class TestHelper {
   public app: INestApplication;
@@ -43,10 +44,12 @@ export class TestHelper {
 
   private async applyFixtures() {
     await initUsersWithPasswordAuth(this.app);
+    await pause(1);
     await initUserWithEVMAuth(
       this.app,
       this.getModule<AuthService>(AuthService),
     );
+    await pause(1);
     await initUserWithSolanaAuth(
       this.app,
       this.getModule<AuthService>(AuthService),

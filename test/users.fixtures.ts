@@ -5,11 +5,12 @@ import { HttpStatus } from '@nestjs/common';
 import { Keypair } from '@solana/web3.js';
 import { sign } from 'tweetnacl';
 import * as bs from 'bs58';
+import {pause} from "../src/utils";
 
 export const initUsersWithPasswordAuth = async (app) => {
   const userPayload = {
     avatar: 'https://google.com/userA.png',
-    email: 'userA@password.auth',
+    email: 'user@password.auth',
     username: 'user.password.auth',
     displayName: 'user password auth',
     type: AuthType.Password,
