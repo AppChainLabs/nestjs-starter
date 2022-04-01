@@ -5,7 +5,6 @@ import { HttpStatus } from '@nestjs/common';
 import { Keypair } from '@solana/web3.js';
 import { sign } from 'tweetnacl';
 import * as bs from 'bs58';
-import {pause} from "../src/utils";
 
 export const initUsersWithPasswordAuth = async (app) => {
   const userPayload = {
