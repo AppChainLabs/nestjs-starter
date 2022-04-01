@@ -51,8 +51,10 @@ export const initUsersWithPasswordAuth = async (app) => {
   expect(profileResponse.body.email).toEqual(loginPayload.username);
 
   return {
+    userId: response.body._id,
     email: 'user@password.auth',
     password: '123456',
+    accessToken: loginResponse.body.accessToken,
   };
 };
 
@@ -167,9 +169,11 @@ export const initUserWithSolanaAuth = async (app, authService) => {
   expect(profileResponse.body.email).toEqual(userPayload.username);
 
   return {
+    userId: profileResponse.body._id,
     email: 'user@solana.auth',
     privateKey: bs.encode(keypair.secretKey),
     walletAddress: keypair.publicKey.toBase58(),
+    accessToken,
   };
 };
 
@@ -247,7 +251,6 @@ export const initUserWithEVMAuth = async (app, authService) => {
 
   const loginMessage = loginAuthChallenge.body.message;
   const loginAuthChallengeId = loginAuthChallenge.body._id;
-
   const signedLoginData = account.sign(loginMessage);
 
   // Now to login
@@ -282,8 +285,10 @@ export const initUserWithEVMAuth = async (app, authService) => {
   expect(profileResponse.body.email).toEqual(userPayload.username);
 
   return {
+    userId: profileResponse.body._id,
     email: 'user@evm.auth',
     privateKey: account.privateKey,
     walletAddress: account.address,
+    accessToken,
   };
 };

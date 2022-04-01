@@ -36,8 +36,8 @@ describe('registration/login flows (e2e)', () => {
     const app = testHelper.app;
     const response = await request(app.getHttpServer())
       .post('/api/auth/sign-up')
-      .send(userPayload)
-      .set('Accept', 'application/json');
+      .set('Accept', 'application/json')
+      .send(userPayload);
 
     expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
   });
