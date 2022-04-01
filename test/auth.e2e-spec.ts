@@ -10,7 +10,7 @@ import { TestHelper } from './test.helper';
 
 import { AuthService } from '../src/auth/auth.service';
 
-describe('/api/auth/sign-up (e2e)', () => {
+describe('registration/login flows (e2e)', () => {
   const testHelper = new TestHelper();
 
   beforeEach(async () => {
@@ -66,7 +66,7 @@ describe('/api/auth/sign-up (e2e)', () => {
 
   it('should login with password and retrieve profile successfully', async () => {
     const loginPayload = {
-      username: 'userA@userA.userA',
+      username: 'user@password.auth',
       password: '123456',
     };
 

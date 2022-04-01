@@ -5,7 +5,12 @@ import mongoose from 'mongoose';
 import { closeInMongodConnection } from '../src/helper';
 import { AppModule } from '../src/app.module';
 import { globalApply } from '../src/main';
-import { initUserFixtures } from './users.fixtures';
+import {
+  initUsersWithPasswordAuth,
+  initUserWithEVMAuth,
+  initUserWithSolanaAuth,
+} from './users.fixtures';
+import { AuthService } from '../src/auth/auth.service';
 
 export class TestHelper {
   public app: INestApplication;
@@ -37,6 +42,14 @@ export class TestHelper {
   }
 
   private async applyFixtures() {
-    await initUserFixtures(this.app);
+    await initUsersWithPasswordAuth(this.app);
+    await initUserWithEVMAuth(
+      this.app,
+      this.getModule<AuthService>(AuthService),
+    );
+    await initUserWithSolanaAuth(
+      this.app,
+      this.getModule<AuthService>(AuthService),
+    );
   }
 }
