@@ -10,7 +10,7 @@ import { RegistrationAuthDto } from '../src/auth/dto/registration-auth.dto';
 import { AuthService } from '../src/auth/auth.service';
 import { testHelper } from './test-entrypoint.e2e-spec';
 
-describe('registration/login flows (e2e)', () => {
+describe('[auth] registration/login flows (e2e)', () => {
   it('invalid payload, should fail to signup', async () => {
     const userPayload = {
       avatar: 'httpsgoogle.',

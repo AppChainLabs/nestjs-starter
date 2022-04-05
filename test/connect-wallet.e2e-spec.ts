@@ -4,8 +4,8 @@ import { HttpStatus } from '@nestjs/common';
 
 import { testHelper } from './test-entrypoint.e2e-spec';
 
-describe('[auth user] Connect wallets test (e2e)', () => {
-  it('[password auth user] should connect evm wallet successfully', async () => {
+describe('[auth] Connect wallets test (e2e)', () => {
+  it('should connect evm wallet successfully', async () => {
     const passwordAuthUser = testHelper.passwordAuthUser;
     const app = testHelper.app;
     const evmKeyPair = testHelper.createEvmKeyPair();
@@ -81,7 +81,7 @@ describe('[auth user] Connect wallets test (e2e)', () => {
     expect(profileResponse.body.email).toEqual(passwordAuthUser.email);
   });
 
-  it('[password auth user] should connect solana wallet successfully', async () => {
+  it('should connect solana wallet successfully', async () => {
     const passwordAuthUser = testHelper.passwordAuthUser;
     const app = testHelper.app;
     const solanaKeypair = testHelper.createSolanaKeypair();

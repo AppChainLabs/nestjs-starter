@@ -10,5 +10,5 @@ afterAll(async () => {
   await testHelper.shutDownTestingApp();
 });
 
-require('./auth.e2e-spec');
+require('./registration.e2e-spec');
 require('./connect-wallet.e2e-spec');
