@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as bs from 'bs58';
 import { Keypair } from '@solana/web3.js';
 import { sign as solanaSign } from 'tweetnacl';
+import mongoose from 'mongoose';
 
 import { AppModule } from '../src/app.module';
 import { globalApply } from '../src/main';
@@ -12,8 +13,6 @@ import {
   initUserWithSolanaAuth,
 } from './users.fixtures';
 import { AuthService } from '../src/auth/auth.service';
-import { pause } from '../src/utils';
-import mongoose from 'mongoose';
 import { getMemoryServerMongoUri } from '../src/helper';
 
 export class TestHelper {
@@ -118,12 +117,10 @@ export class TestHelper {
 
   private async applyFixtures() {
     this.passwordAuthUser = await initUsersWithPasswordAuth(this.app);
-    await pause(0.5);
     this.evmAuthUser = await initUserWithEVMAuth(
       this.app,
       this.getModule<AuthService>(AuthService),
     );
-    await pause(0.5);
     this.solanaAuthUser = await initUserWithSolanaAuth(
       this.app,
       this.getModule<AuthService>(AuthService),
