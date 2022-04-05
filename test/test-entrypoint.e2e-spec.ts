@@ -1,7 +1,4 @@
-import { ConfigService } from '@nestjs/config';
-import { TestHelper } from './test.helper';
-
-export const testHelper = new TestHelper(new ConfigService());
+export const testHelper = new TestHelper();
 
 beforeAll(async () => {
   await testHelper.bootTestingApp();

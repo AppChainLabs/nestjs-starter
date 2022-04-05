@@ -3,7 +3,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as bs from 'bs58';
 import { Keypair } from '@solana/web3.js';
 import { sign as solanaSign } from 'tweetnacl';
-import { ConfigService } from '@nestjs/config';
 
 import { AppModule } from '../src/app.module';
 import { globalApply } from '../src/main';
@@ -15,9 +14,9 @@ import {
 import { AuthService } from '../src/auth/auth.service';
 import { pause } from '../src/utils';
 import mongoose from 'mongoose';
+import { getMemoryServerMongoUri } from '../src/helper';
 
 export class TestHelper {
-  constructor(private configService: ConfigService) {}
   public app: INestApplication;
   public moduleFixture: TestingModule;
 
@@ -45,16 +44,13 @@ export class TestHelper {
   };
 
   private async cleanTestDb(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       /* Connect to the DB */
-      mongoose.connect(
-        this.configService.get<string>('TEST_MONGO_URL'),
-        async function () {
-          /* Drop the DB */
-          await mongoose.connection.db.dropDatabase();
-          resolve();
-        },
-      );
+      mongoose.connect(await getMemoryServerMongoUri(), async function () {
+        /* Drop the DB */
+        await mongoose.connection.db.dropDatabase();
+        resolve();
+      });
     });
   }
 

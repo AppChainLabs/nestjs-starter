@@ -8,7 +8,7 @@ import { UserModule } from './user/user.module';
 import { EmailModule } from './email/email.module';
 import { AuthModule } from './auth/auth.module';
 import { ThrottlerModule } from '@nestjs/throttler';
-import {getMemoryServerMongoUri} from "./helper";
+import { getMemoryServerMongoUri } from './helper';
 
 @Module({
   imports: [
