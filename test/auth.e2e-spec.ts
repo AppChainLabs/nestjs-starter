@@ -6,21 +6,11 @@ import * as bs from 'bs58';
 
 import { AuthType, WalletCredential } from '../src/auth/entities/auth.entity';
 import { RegistrationAuthDto } from '../src/auth/dto/registration-auth.dto';
-import { TestHelper } from './test.helper';
 
 import { AuthService } from '../src/auth/auth.service';
+import { testHelper } from './test-entrypoint.e2e-spec';
 
 describe('registration/login flows (e2e)', () => {
-  const testHelper = new TestHelper();
-
-  beforeEach(async () => {
-    await testHelper.bootTestingApp();
-  });
-
-  afterEach(async () => {
-    await testHelper.shutDownTestingApp();
-  });
-
   it('invalid payload, should fail to signup', async () => {
     const userPayload = {
       avatar: 'httpsgoogle.',
@@ -123,8 +113,8 @@ describe('registration/login flows (e2e)', () => {
     // Step 3: Sign up with credentials
     const signUpUserPayload = {
       avatar: 'https://google.com/image.png',
-      email: 'userxyz@userxyz.userxyz',
-      username: 'user',
+      email: 'userxyz@solana.userxyz',
+      username: 'userxyz@solana',
       displayName: 'user user',
       type: AuthType.Solana,
       credential: {
@@ -180,7 +170,7 @@ describe('registration/login flows (e2e)', () => {
 
     // Now to login
     const userPayload = {
-      username: 'userxyz@userxyz.userxyz',
+      username: signUpUserPayload.email,
       authType: AuthType.Solana,
       credential: {
         walletAddress: publicKey,
@@ -241,8 +231,8 @@ describe('registration/login flows (e2e)', () => {
     // Step 3: Sign up with credentials
     const signUpUserPayload = {
       avatar: 'https://google.com/image.png',
-      email: 'userxyz@userxyz.userxyz',
-      username: 'user',
+      email: 'userxyz@evm.userxyz',
+      username: 'userxyz@evm',
       displayName: 'user user',
       type: AuthType.EVMChain,
       credential: {
@@ -293,7 +283,7 @@ describe('registration/login flows (e2e)', () => {
 
     // Now to login
     const userPayload = {
-      username: 'userxyz@userxyz.userxyz',
+      username: signUpUserPayload.email,
       authType: AuthType.EVMChain,
       credential: {
         walletAddress: account.address,

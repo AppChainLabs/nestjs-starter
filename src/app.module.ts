@@ -7,7 +7,6 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { EmailModule } from './email/email.module';
 import { AuthModule } from './auth/auth.module';
-import { getMemoryServerMongoUri } from './helper';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
@@ -28,7 +27,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 
         let uri;
 
-        if (env === 'test') uri = await getMemoryServerMongoUri();
+        if (env === 'test') uri = configService.get<string>('TEST_MONGO_URL');
         else uri = configService.get<string>('MONGO_URL');
 
         return {

@@ -1,19 +1,10 @@
-import { TestHelper } from './test.helper';
 import * as request from 'supertest';
 import { AuthType } from '../src/auth/entities/auth.entity';
 import { HttpStatus } from '@nestjs/common';
 
+import { testHelper } from './test-entrypoint.e2e-spec';
+
 describe('[auth user] Connect wallets test (e2e)', () => {
-  const testHelper = new TestHelper();
-
-  beforeEach(async () => {
-    await testHelper.bootTestingApp();
-  });
-
-  afterEach(async () => {
-    await testHelper.shutDownTestingApp();
-  });
-
   it('[password auth user] should connect evm wallet successfully', async () => {
     const passwordAuthUser = testHelper.passwordAuthUser;
     const app = testHelper.app;

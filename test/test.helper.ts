@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as bs from 'bs58';
 import { Keypair } from '@solana/web3.js';
 import { sign as solanaSign } from 'tweetnacl';
+import { ConfigService } from '@nestjs/config';
 
 import { AppModule } from '../src/app.module';
 import { globalApply } from '../src/main';
@@ -13,8 +14,10 @@ import {
 } from './users.fixtures';
 import { AuthService } from '../src/auth/auth.service';
 import { pause } from '../src/utils';
+import mongoose from 'mongoose';
 
 export class TestHelper {
+  constructor(private configService: ConfigService) {}
   public app: INestApplication;
   public moduleFixture: TestingModule;
 
@@ -41,7 +44,23 @@ export class TestHelper {
     accessToken: string;
   };
 
+  private async cleanTestDb(): Promise<void> {
+    return new Promise((resolve) => {
+      /* Connect to the DB */
+      mongoose.connect(
+        this.configService.get<string>('TEST_MONGO_URL'),
+        async function () {
+          /* Drop the DB */
+          await mongoose.connection.db.dropDatabase();
+          resolve();
+        },
+      );
+    });
+  }
+
   public async bootTestingApp() {
+    await this.cleanTestDb();
+
     this.moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -58,6 +77,7 @@ export class TestHelper {
   public async shutDownTestingApp() {
     await this.moduleFixture.close();
     await this.app.close();
+    await mongoose.connection.close();
   }
 
   public createSolanaKeypair() {
