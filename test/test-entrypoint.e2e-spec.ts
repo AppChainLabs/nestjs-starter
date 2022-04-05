@@ -1,3 +1,5 @@
+import { TestHelper } from './test.helper';
+
 export const testHelper = new TestHelper();
 
 beforeAll(async () => {
