@@ -2,9 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Delete,
   ForbiddenException,
-  Get,
   Param,
   Post,
   Request,
@@ -12,12 +10,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
+
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { RegistrationAuthDto } from './dto/registration-auth.dto';
 import { LoginWalletAuthDto } from './dto/login-wallet-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
-import { AuthGuard } from '@nestjs/passport';
 import { WalletAuthStrategy } from './wallet-auth.strategy';
 import { PasswordAuthStrategy } from './password-auth.strategy';
 import { UserDocument } from '../user/entities/user.entity';
@@ -26,7 +25,7 @@ import { SessionType } from './entities/auth-session.entity';
 import { AuthType } from './entities/auth.entity';
 
 @ApiTags('auth')
-@Controller('api/auth')
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -62,15 +61,6 @@ export class AuthController {
   @ApiBearerAuth('Bearer')
   @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
   @SetMetadata('sessionType', [SessionType.Auth])
-  @Get('/profile')
-  getProfile(@Request() req) {
-    const session = req.user;
-    return session.user;
-  }
-
-  @ApiBearerAuth('Bearer')
-  @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
-  @SetMetadata('sessionType', [SessionType.Auth])
   @Post('connect-wallet')
   connectWallet(@Body() createAuthDto: CreateAuthDto, @Request() req) {
     const session = req.user;
@@ -86,39 +76,5 @@ export class AuthController {
     }
 
     return this.authService.createAuthEntity(createAuthDto);
-  }
-
-  @ApiBearerAuth('Bearer')
-  @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
-  @SetMetadata('sessionType', [SessionType.Auth])
-  @Get(':user_id/')
-  getAuthEntities(@Param('user_id') user_id: string, @Request() req) {
-    const session = req.user;
-
-    const { user } = session as unknown as { user: UserDocument };
-
-    if (user.id.toString() !== user_id) {
-      throw new ForbiddenException();
-    }
-    return this.authService.getAuthEntities(user_id);
-  }
-
-  @ApiBearerAuth('Bearer')
-  @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
-  @SetMetadata('sessionType', [SessionType.Auth])
-  @Delete(':user_id/:auth_id')
-  deleteEntity(
-    @Param('auth_id') id: string,
-    @Param('user_id') user_id: string,
-    @Request() req,
-  ) {
-    const session = req.user;
-
-    const { user } = session as unknown as { user: UserDocument };
-
-    if (user.id.toString() !== user_id) {
-      throw new ForbiddenException();
-    }
-    return this.authService.deleteAuthEntity(id);
   }
 }

@@ -72,7 +72,7 @@ describe('[auth] registration/login flows (e2e)', () => {
     expect(response.body.accessToken).toBeTruthy();
 
     const profileResponse = await request(app.getHttpServer())
-      .get('/api/auth/profile')
+      .get('/api/user/profile')
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
       .set('Authorization', `Bearer ${response.body.accessToken}`)
@@ -190,7 +190,7 @@ describe('[auth] registration/login flows (e2e)', () => {
     // Now to use access token to get profile
     const accessToken = response.body.accessToken;
     const profileResponse = await request(app.getHttpServer())
-      .get('/api/auth/profile')
+      .get('/api/user/profile')
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
       .set('Authorization', `Bearer ${accessToken}`)
@@ -303,7 +303,7 @@ describe('[auth] registration/login flows (e2e)', () => {
     // Now to use access token to get profile
     const accessToken = response.body.accessToken;
     const profileResponse = await request(app.getHttpServer())
-      .get('/api/auth/profile')
+      .get('/api/user/profile')
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
       .set('Authorization', `Bearer ${accessToken}`)

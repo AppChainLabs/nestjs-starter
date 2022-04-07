@@ -8,18 +8,27 @@ import mongoose from 'mongoose';
 import { AppModule } from '../src/app.module';
 import { globalApply } from '../src/main';
 import {
+  initUserAdmin,
   initUsersWithPasswordAuth,
   initUserWithEVMAuth,
   initUserWithSolanaAuth,
 } from './users.fixtures';
 import { AuthService } from '../src/auth/auth.service';
 import { getMemoryServerMongoUri } from '../src/helper';
+import { UserService } from '../src/user/user.service';
 
 export class TestHelper {
   public app: INestApplication;
   public moduleFixture: TestingModule;
 
   public passwordAuthUser: {
+    userId: string;
+    email: string;
+    password: string;
+    accessToken: string;
+  };
+
+  public userAuthAdmin: {
     userId: string;
     email: string;
     password: string;
@@ -75,30 +84,46 @@ export class TestHelper {
     await mongoose.connection.close();
   }
 
-  public createSolanaKeypair() {
-    const keypair = Keypair.generate();
+  public createSolanaKeypair(
+    keyPair: { walletAddress: string; privateKey: string } = null,
+  ) {
+    let keypair = keyPair;
+
+    if (!keypair) {
+      const pair = Keypair.generate();
+      keypair = {
+        walletAddress: pair.publicKey.toBase58(),
+        privateKey: bs.encode(pair.secretKey),
+      };
+    }
 
     const sign = (message: string) => {
       const encodedLoginMessage = new TextEncoder().encode(message);
       const signedLoginData = solanaSign.detached(
         encodedLoginMessage,
-        keypair.secretKey,
+        bs.decode(keypair.privateKey),
       );
       return bs.encode(signedLoginData);
     };
 
     return {
-      privateKey: bs.encode(keypair.secretKey),
-      walletAddress: keypair.publicKey.toBase58(),
+      privateKey: keypair.privateKey,
+      walletAddress: keypair.walletAddress,
       sign,
     };
   }
 
-  public createEvmKeyPair() {
+  public createEvmKeyPair(
+    keyPair: { walletAddress: string; privateKey: string } = null,
+  ) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const Web3 = require('web3');
     const w3 = new Web3();
-    const account = w3.eth.accounts.create();
+    let account = w3.eth.accounts.create();
+
+    if (keyPair) {
+      account = w3.eth.accounts.privateKeyToAccount(keyPair.privateKey);
+    }
 
     const sign = (message: string) => {
       return account.sign(message).signature;
@@ -124,6 +149,10 @@ export class TestHelper {
     this.solanaAuthUser = await initUserWithSolanaAuth(
       this.app,
       this.getModule<AuthService>(AuthService),
+    );
+    this.userAuthAdmin = await initUserAdmin(
+      this.app,
+      this.moduleFixture.get<UserService>(UserService),
     );
   }
 }

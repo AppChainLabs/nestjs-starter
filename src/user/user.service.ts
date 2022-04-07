@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import mongoose, { Model } from 'mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Model } from 'mongoose';
-import { InjectModel } from '@nestjs/mongoose';
+import { AuthModel, AuthDocument } from '../auth/entities/auth.entity';
 import { UserDocument, UserModel } from './entities/user.entity';
 
 @Injectable()
@@ -10,7 +12,31 @@ export class UserService {
   constructor(
     @InjectModel(UserModel.name)
     private UserDocument: Model<UserDocument>,
+
+    // inject connection
+    @InjectConnection() private readonly connection: mongoose.Connection,
+
+    // inject model
+    @InjectModel(AuthModel.name)
+    private AuthDocument: Model<AuthDocument>,
   ) {}
+
+  getUserAuthEntities(userId: string) {
+    return this.AuthDocument.find({ userId });
+  }
+
+  async deleteUserAuthEntity(userId: string, id: string) {
+    if ((await this.AuthDocument.count({ userId })) === 1) {
+      throw new ForbiddenException(
+        'AUTH::DELETE::AT_LEAST_ONE_ENTITY_CONSTRAINT',
+      );
+    }
+
+    return this.AuthDocument.findOneAndRemove({
+      userId,
+      _id: id,
+    });
+  }
 
   async create(createUserDto: CreateUserDto) {
     const user = new this.UserDocument(createUserDto);

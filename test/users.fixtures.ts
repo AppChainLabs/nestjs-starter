@@ -5,6 +5,65 @@ import { HttpStatus } from '@nestjs/common';
 import { Keypair } from '@solana/web3.js';
 import { sign } from 'tweetnacl';
 import * as bs from 'bs58';
+import { UserService } from '../src/user/user.service';
+import { UserRole } from '../src/user/entities/user.entity';
+
+export const initUserAdmin = async (app, userService: UserService) => {
+  const userPayload = {
+    avatar: 'https://google.com/userA.png',
+    email: 'user@admin.auth',
+    username: 'user.admin.auth',
+    displayName: 'user admin auth',
+    type: AuthType.Password,
+    credential: {
+      password: '123456',
+    },
+  } as RegistrationAuthDto;
+
+  const response = await request(app.getHttpServer())
+    .post('/api/auth/sign-up')
+    .set('Accept', 'application/json')
+    .send(userPayload);
+
+  expect(response.statusCode).toEqual(HttpStatus.CREATED);
+  expect(response.body._id).toBeTruthy();
+
+  const userObj = await userService.findById(response.body._id);
+  userObj.roles = [UserRole.SystemAdmin];
+  await userObj.save();
+
+  const loginPayload = {
+    username: 'user@admin.auth',
+    password: '123456',
+  };
+
+  const loginResponse = await request(app.getHttpServer())
+    .post('/api/auth/login')
+    .set('Content-Type', 'application/json')
+    .set('Accept', 'application/json')
+    .send(loginPayload);
+
+  expect(loginResponse.statusCode).toEqual(HttpStatus.CREATED);
+  expect(loginResponse.body.accessToken).toBeTruthy();
+
+  const profileResponse = await request(app.getHttpServer())
+    .get('/api/user/profile')
+    .set('Content-Type', 'application/json')
+    .set('Accept', 'application/json')
+    .set('Authorization', `Bearer ${loginResponse.body.accessToken}`)
+    .send();
+
+  expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
+  expect(profileResponse.body.email).toEqual(loginPayload.username);
+  expect(profileResponse.body.roles[0]).toEqual(UserRole.SystemAdmin);
+
+  return {
+    userId: response.body._id,
+    email: userPayload.email,
+    password: '123456',
+    accessToken: loginResponse.body.accessToken,
+  };
+};
 
 export const initUsersWithPasswordAuth = async (app) => {
   const userPayload = {
@@ -41,7 +100,7 @@ export const initUsersWithPasswordAuth = async (app) => {
   expect(loginResponse.body.accessToken).toBeTruthy();
 
   const profileResponse = await request(app.getHttpServer())
-    .get('/api/auth/profile')
+    .get('/api/user/profile')
     .set('Content-Type', 'application/json')
     .set('Accept', 'application/json')
     .set('Authorization', `Bearer ${loginResponse.body.accessToken}`)
@@ -159,7 +218,7 @@ export const initUserWithSolanaAuth = async (app, authService) => {
   // Now to use access token to get profile
   const accessToken = response.body.accessToken;
   const profileResponse = await request(app.getHttpServer())
-    .get('/api/auth/profile')
+    .get('/api/user/profile')
     .set('Content-Type', 'application/json')
     .set('Accept', 'application/json')
     .set('Authorization', `Bearer ${accessToken}`)
@@ -275,7 +334,7 @@ export const initUserWithEVMAuth = async (app, authService) => {
   // Now to use access token to get profile
   const accessToken = response.body.accessToken;
   const profileResponse = await request(app.getHttpServer())
-    .get('/api/auth/profile')
+    .get('/api/user/profile')
     .set('Content-Type', 'application/json')
     .set('Accept', 'application/json')
     .set('Authorization', `Bearer ${accessToken}`)

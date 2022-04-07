@@ -6,13 +6,18 @@ import {
   IsEnum,
   IsString,
   IsUrl,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateUserDto implements User {
-  @IsUrl()
+  @IsUrl({
+    require_protocol: true,
+    require_valid_protocol: true,
+  })
   avatar: string;
 
   @IsString()
+  @MaxLength(32)
   displayName: string;
 
   @IsEmail()
@@ -29,5 +34,6 @@ export class CreateUserDto implements User {
   roles: string[];
 
   @IsString()
+  @MaxLength(32)
   username: string;
 }

@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Injectable,
 } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
@@ -144,10 +143,6 @@ export class AuthService {
     };
   }
 
-  getAuthEntities(userId: string) {
-    return this.AuthDocument.find({ userId });
-  }
-
   findAuthEntityWithUserId(
     authType: AuthType,
     userId: string,
@@ -273,6 +268,13 @@ export class AuthService {
     } else {
       const credentialDto = createAuthDto.credential as WalletCredentialAuthDto;
 
+      if (
+        await this.AuthDocument.findOne({
+          'credential.walletAddress': credentialDto.walletAddress,
+        })
+      )
+        throw new ConflictException(`AUTH::CREATE::DUPLICATED_WALLET`);
+
       const isCredentialVerified = await this.verifyWalletSignature(
         createAuthDto.type,
         credentialDto,
@@ -297,17 +299,5 @@ export class AuthService {
     });
 
     return authDocument.save();
-  }
-
-  async deleteAuthEntity(id: string) {
-    const entity = await this.AuthDocument.findById(id);
-
-    if ((await this.AuthDocument.count({ userId: entity.userId })) === 1) {
-      throw new ForbiddenException(
-        'AUTH::DELETE::AT_LEAST_ONE_ENTITY_CONSTRAINT',
-      );
-    }
-
-    return this.AuthDocument.findByIdAndRemove(id);
   }
 }

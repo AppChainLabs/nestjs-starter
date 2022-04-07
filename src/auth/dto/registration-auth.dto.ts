@@ -2,7 +2,7 @@ import {
   IsEmail,
   IsEnum,
   IsString,
-  IsUrl,
+  IsUrl, MaxLength,
   ValidateNested,
 } from 'class-validator';
 import { AuthType } from '../entities/auth.entity';
@@ -17,12 +17,14 @@ class RegistrationDto {
   avatar: string;
 
   @IsString()
+  @MaxLength(32)
   displayName: string;
 
   @IsEmail()
   email: string;
 
   @IsString()
+  @MaxLength(32)
   username: string;
 
   @IsEnum(AuthType)
