@@ -1,6 +1,7 @@
 import { User, UserRole } from '../entities/user.entity';
 import {
   ArrayUnique,
+  IsAlphanumeric,
   IsBoolean,
   IsEmail,
   IsEnum,
@@ -33,7 +34,7 @@ export class CreateUserDto implements User {
   @ArrayUnique()
   roles: string[];
 
-  @IsString()
+  @IsAlphanumeric()
   @MaxLength(32)
   username: string;
 }

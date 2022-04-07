@@ -1,7 +1,8 @@
-import { IsString } from 'class-validator';
+import { IsAlphanumeric, IsString, MaxLength } from 'class-validator';
 
 export class LoginAuthDto {
   @IsString()
+  @MaxLength(32)
   username: string;
 
   @IsString()

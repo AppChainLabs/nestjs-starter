@@ -12,3 +12,4 @@ afterAll(async () => {
 
 require('./registration.e2e-spec');
 require('./connect-wallet.e2e-spec');
+require('./profile.e2e-specs');

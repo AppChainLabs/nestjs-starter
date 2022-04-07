@@ -35,6 +35,8 @@ import {
   AuthChallengeDocument,
   AuthChallengeModel,
 } from './entities/auth-challenge.entity';
+import { Otp } from '../providers/otp';
+import { ConnectEmailAuthDto } from './dto/connect-email-auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -65,12 +67,53 @@ export class AuthService {
 
     // inject jwt options
     private jwtOptions: Jwt,
+
+    private otp: Otp,
   ) {}
 
   private async generateChecksum(data: any) {
     return this.hashingService
       .getHasher(HashingAlgorithm.BCrypt)
       .hash(JSON.stringify(data));
+  }
+
+  async generateOtp(target: string) {
+    const authChallenge = await this.generateAuthChallenge(target);
+    return this.otp.generateToken(authChallenge.message);
+  }
+
+  async sendEmailVerification(email: string) {
+    // TODO: send this otp token to email
+    return this.generateOtp(email);
+  }
+
+  async connectEmail(userId: string, connectEmailDto: ConnectEmailAuthDto) {
+    const user = await this.userService.findById(userId);
+    const latestAuthChallenge = await this.AuthChallengeDocument.findOne({
+      target: connectEmailDto.email,
+      isResolved: false,
+    });
+
+    if (
+      !latestAuthChallenge ||
+      !this.otp.verify(connectEmailDto.token, latestAuthChallenge.message)
+    ) {
+      throw new BadRequestException('AUTH::INVALID_OTP');
+    }
+
+    let response;
+    const session = await this.connection.startSession();
+
+    await session.withTransaction(async () => {
+      latestAuthChallenge.isResolved = true;
+      await latestAuthChallenge.save();
+
+      user.email = connectEmailDto.email;
+      response = await user.save();
+    });
+
+    await session.endSession();
+    return response;
   }
 
   async generateAuthChallenge(target: string) {
@@ -84,9 +127,10 @@ export class AuthService {
     const message = `Sign in with ${target}.\nChallenge hash: ${checksum}.\nDate: ${currentDateTime.toISOString()}.`;
 
     const authChallenge = new this.AuthChallengeDocument({
-      walletAddress: target,
+      target,
       expiredDate: expiredDate,
       message: message,
+      isResolved: false,
     });
 
     return authChallenge.save();
@@ -187,7 +231,7 @@ export class AuthService {
       return false;
     }
 
-    if (walletCredentialDto.walletAddress !== authChallenge.walletAddress) {
+    if (walletCredentialDto.walletAddress !== authChallenge.target) {
       return false;
     }
 

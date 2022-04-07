@@ -10,6 +10,7 @@ import { globalApply } from '../src/main';
 import {
   initUserAdmin,
   initUsersWithPasswordAuth,
+  initUsersWithSolanaPasswordAuth,
   initUserWithEVMAuth,
   initUserWithSolanaAuth,
 } from './users.fixtures';
@@ -20,6 +21,15 @@ import { UserService } from '../src/user/user.service';
 export class TestHelper {
   public app: INestApplication;
   public moduleFixture: TestingModule;
+
+  public solanaPasswordAuthUser: {
+    userId: string;
+    email: string;
+    password: string;
+    accessToken: string;
+    privateKey: string;
+    walletAddress: string;
+  };
 
   public passwordAuthUser: {
     userId: string;
@@ -153,6 +163,9 @@ export class TestHelper {
     this.userAuthAdmin = await initUserAdmin(
       this.app,
       this.moduleFixture.get<UserService>(UserService),
+    );
+    this.solanaPasswordAuthUser = await initUsersWithSolanaPasswordAuth(
+      this.app,
     );
   }
 }

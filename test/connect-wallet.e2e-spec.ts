@@ -3,7 +3,7 @@ import { HttpStatus } from '@nestjs/common';
 import { AuthType } from '../src/auth/entities/auth.entity';
 import { testHelper } from './test-entrypoint.e2e-spec';
 
-describe('[auth] Connect wallets test (e2e)', () => {
+describe('[auth] connect wallets test (e2e)', () => {
   it('should connect evm wallet successfully', async () => {
     const passwordAuthUser = testHelper.passwordAuthUser;
     const app = testHelper.app;

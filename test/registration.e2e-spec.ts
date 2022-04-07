@@ -114,7 +114,7 @@ describe('[auth] registration/login flows (e2e)', () => {
     const signUpUserPayload = {
       avatar: 'https://google.com/image.png',
       email: 'userxyz@solana.userxyz',
-      username: 'userxyz@solana',
+      username: 'userxyzsolana',
       displayName: 'user user',
       type: AuthType.Solana,
       credential: {
@@ -232,7 +232,7 @@ describe('[auth] registration/login flows (e2e)', () => {
     const signUpUserPayload = {
       avatar: 'https://google.com/image.png',
       email: 'userxyz@evm.userxyz',
-      username: 'userxyz@evm',
+      username: 'userxyzevm',
       displayName: 'user user',
       type: AuthType.EVMChain,
       credential: {

@@ -11,6 +11,7 @@ import {
   Optional,
   SetMetadata,
   Request,
+  Put,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -22,6 +23,7 @@ import { RolesGuard } from '../auth/roles-guard.guard';
 import { UserRole } from './entities/user.entity';
 import { RestrictJwtSessionGuard } from '../auth/restrict-jwt-session.guard';
 import { SessionType } from '../auth/entities/auth-session.entity';
+import { UpdateProfileAuthDto } from './dto/profile-auth.dto';
 
 @ApiBearerAuth('Bearer')
 @ApiTags('user')
@@ -39,10 +41,21 @@ export class UserController {
 
   @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
   @SetMetadata('sessionType', [SessionType.Auth])
+  @Put('/profile')
+  updateUserProfile(
+    @Body() updateProfileDto: UpdateProfileAuthDto,
+    @Request() req,
+  ) {
+    const session = req.user;
+    return this.userService.updateProfile(session.user._id, updateProfileDto);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
+  @SetMetadata('sessionType', [SessionType.Auth])
   @Get('/profile/auth-entities')
   getUserAuthEntities(@Request() req) {
     const session = req.user;
-    return this.userService.getUserAuthEntities(session.user.id);
+    return this.userService.getUserAuthEntities(session.user._id);
   }
 
   @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
@@ -51,7 +64,7 @@ export class UserController {
   @Delete('/profile/auth-entities/:auth_id')
   deleteUserAuthEntity(@Param('auth_id') id: string, @Request() req) {
     const session = req.user;
-    return this.userService.deleteUserAuthEntity(session.user.id, id);
+    return this.userService.deleteUserAuthEntity(session.user._id, id);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard, RestrictJwtSessionGuard)

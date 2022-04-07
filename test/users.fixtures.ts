@@ -7,12 +7,13 @@ import { sign } from 'tweetnacl';
 import * as bs from 'bs58';
 import { UserService } from '../src/user/user.service';
 import { UserRole } from '../src/user/entities/user.entity';
+import { testHelper } from './test-entrypoint.e2e-spec';
 
 export const initUserAdmin = async (app, userService: UserService) => {
   const userPayload = {
     avatar: 'https://google.com/userA.png',
     email: 'user@admin.auth',
-    username: 'user.admin.auth',
+    username: 'UserAdminAuth',
     displayName: 'user admin auth',
     type: AuthType.Password,
     credential: {
@@ -65,11 +66,96 @@ export const initUserAdmin = async (app, userService: UserService) => {
   };
 };
 
+export const initUsersWithSolanaPasswordAuth = async (app) => {
+  const userPayload = {
+    avatar: 'https://google.com/userA.png',
+    email: 'user@solana.password.auth',
+    username: 'UserSolanaPasswordAuth',
+    displayName: 'user password auth',
+    type: AuthType.Password,
+    credential: {
+      password: '123456',
+    },
+  } as RegistrationAuthDto;
+
+  const response = await request(app.getHttpServer())
+    .post('/api/auth/sign-up')
+    .set('Accept', 'application/json')
+    .send(userPayload);
+
+  expect(response.statusCode).toEqual(HttpStatus.CREATED);
+  expect(response.body._id).toBeTruthy();
+
+  const loginPayload = {
+    username: 'user@solana.password.auth',
+    password: '123456',
+  };
+
+  const loginResponse = await request(app.getHttpServer())
+    .post('/api/auth/login')
+    .set('Content-Type', 'application/json')
+    .set('Accept', 'application/json')
+    .send(loginPayload);
+
+  expect(loginResponse.statusCode).toEqual(HttpStatus.CREATED);
+  expect(loginResponse.body.accessToken).toBeTruthy();
+
+  const profileResponse = await request(app.getHttpServer())
+    .get('/api/user/profile')
+    .set('Content-Type', 'application/json')
+    .set('Accept', 'application/json')
+    .set('Authorization', `Bearer ${loginResponse.body.accessToken}`)
+    .send();
+
+  expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
+  expect(profileResponse.body.email).toEqual(loginPayload.username);
+
+  const solanaKeypair = testHelper.createSolanaKeypair();
+
+  const connectAuthChallenge = await request(app.getHttpServer())
+    .post(`/api/auth/challenge/${solanaKeypair.walletAddress}`)
+    .set('Content-Type', 'application/json')
+    .set('Accept', 'application/json');
+
+  const connectMessage = connectAuthChallenge.body.message;
+  const connectAuthChallengeId = connectAuthChallenge.body._id;
+  const signConnectData = solanaKeypair.sign(connectMessage);
+
+  // Now to use access token to get profile
+  const accessToken = loginResponse.body.accessToken;
+  const connectWalletResponse = await request(app.getHttpServer())
+    .post('/api/auth/connect-wallet')
+    .set('Content-Type', 'application/json')
+    .set('Accept', 'application/json')
+    .set('Authorization', `Bearer ${accessToken}`)
+    .send({
+      userId: response.body._id,
+      type: AuthType.Solana,
+      credential: {
+        walletAddress: solanaKeypair.walletAddress,
+        signedData: signConnectData,
+        authChallengeId: connectAuthChallengeId,
+      },
+    });
+
+  expect(connectWalletResponse.statusCode).toEqual(HttpStatus.CREATED);
+  expect(connectWalletResponse.body._id).toBeTruthy();
+
+  return {
+    userId: response.body._id,
+    email: 'user@solana.password.auth',
+    password: '123456',
+    accessToken: loginResponse.body.accessToken,
+    privateKey: solanaKeypair.privateKey,
+    walletAddress: solanaKeypair.walletAddress,
+  };
+};
+
 export const initUsersWithPasswordAuth = async (app) => {
   const userPayload = {
     avatar: 'https://google.com/userA.png',
     email: 'user@password.auth',
-    username: 'user.password.auth',
+    username: 'UserPasswordAuth',
     displayName: 'user password auth',
     type: AuthType.Password,
     credential: {
@@ -147,7 +233,7 @@ export const initUserWithSolanaAuth = async (app, authService) => {
   const signUpUserPayload = {
     avatar: 'https://google.com/image.png',
     email: 'user@solana.auth',
-    username: 'user.solana.auth',
+    username: 'UserSolanaAuth',
     displayName: 'user solana auth',
     type: AuthType.Solana,
     credential: {
@@ -266,7 +352,7 @@ export const initUserWithEVMAuth = async (app, authService) => {
   const signUpUserPayload = {
     avatar: 'https://google.com/image.png',
     email: 'user@evm.auth',
-    username: 'user.evm.auth',
+    username: 'UserEvmAuth',
     displayName: 'user evm auth',
     type: AuthType.EVMChain,
     credential: {

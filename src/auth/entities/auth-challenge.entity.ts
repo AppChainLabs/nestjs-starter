@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 
 export class AuthChallenge {
-  public walletAddress: string;
+  public target: string;
   public message: string;
   public expiredDate: string;
   public isResolved: boolean;
@@ -13,7 +13,7 @@ export class AuthChallenge {
 @Schema({ timestamps: true, autoIndex: true })
 export class AuthChallengeModel implements AuthChallenge {
   @Prop({ type: String })
-  walletAddress: string;
+  target: string;
 
   @Prop({ type: String })
   message: string;

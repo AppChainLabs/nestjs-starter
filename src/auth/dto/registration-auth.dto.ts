@@ -1,4 +1,5 @@
 import {
+  IsAlphanumeric,
   IsEmail,
   IsEnum,
   IsString,
@@ -24,7 +25,7 @@ class RegistrationDto {
   @IsEmail()
   email: string;
 
-  @IsString()
+  @IsAlphanumeric()
   @MaxLength(32)
   username: string;
 
