@@ -2,7 +2,8 @@ import {
   IsEmail,
   IsEnum,
   IsString,
-  IsUrl, MaxLength,
+  IsUrl,
+  MaxLength,
   ValidateNested,
 } from 'class-validator';
 import { AuthType } from '../entities/auth.entity';
