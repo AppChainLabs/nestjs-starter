@@ -3,7 +3,7 @@ import { HttpStatus } from '@nestjs/common';
 
 import { UserService } from '../src/user/user.service';
 import { testHelper } from './test-entrypoint.e2e-spec';
-import { AuthType } from '../dist/auth/entities/auth.entity';
+import { AuthType } from '../src/auth/entities/auth.entity';
 import { AuthService } from '../src/auth/auth.service';
 
 describe('[profile] profile management', () => {
