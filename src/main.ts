@@ -14,6 +14,7 @@ const createMainAppHandler = async (module, adapter) => {
 
 export const globalApply = (app) => {
   // inject pipe
+  app.setGlobalPrefix('api/');
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalFilters(new AllExceptionsFilter());
 };

@@ -34,8 +34,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     )) as AuthSessionDocument;
     if (!session) throw new UnauthorizedException();
 
-    if (session.userId.toString() !== user.id.toString())
+    if (new Date().getTime() >= new Date(session.expiresAt).getTime()) {
       throw new UnauthorizedException();
+    }
+
+    if (session.userId.toString() !== user.id.toString()) {
+      throw new UnauthorizedException();
+    }
 
     const isChecksumVerified = await this.hashingService
       .getHasher(HashingAlgorithm.BCrypt)

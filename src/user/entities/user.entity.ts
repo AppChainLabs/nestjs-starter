@@ -44,8 +44,8 @@ export class UserModel implements User {
 
 export const UserSchema = SchemaFactory.createForClass(UserModel);
 
-UserSchema.index({ username: 1 }, { unique: true });
-UserSchema.index({ email: 1 }, { unique: true });
-UserSchema.index({ email: 1, username: 1 }, { unique: true });
+UserSchema.index({ username: 1 }, { unique: true, sparse: true });
+UserSchema.index({ email: 1 }, { unique: true, sparse: true });
+UserSchema.index({ createdAt: 1, email: 1, username: 1, displayName: 1 }); // for querying in the admin site
 
 export type UserDocument = User & Document;

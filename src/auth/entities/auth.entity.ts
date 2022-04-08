@@ -43,5 +43,9 @@ export class AuthModel implements Auth {
 
 export const AuthSchema = SchemaFactory.createForClass(AuthModel);
 AuthSchema.index({ type: 1, userId: 1, credential: 1 }, { unique: true });
+AuthSchema.index(
+  { 'credential.walletAddress': 1 },
+  { unique: true, sparse: true },
+);
 
 export type AuthDocument = Auth & Document;

@@ -6,21 +6,11 @@ import * as bs from 'bs58';
 
 import { AuthType, WalletCredential } from '../src/auth/entities/auth.entity';
 import { RegistrationAuthDto } from '../src/auth/dto/registration-auth.dto';
-import { TestHelper } from './test.helper';
 
 import { AuthService } from '../src/auth/auth.service';
+import { testHelper } from './test-entrypoint.e2e-spec';
 
-describe('/api/auth/sign-up (e2e)', () => {
-  const testHelper = new TestHelper();
-
-  beforeEach(async () => {
-    await testHelper.bootTestingApp();
-  });
-
-  afterEach(async () => {
-    await testHelper.shutDownTestingApp();
-  });
-
+describe('[auth] registration/login flows (e2e)', () => {
   it('invalid payload, should fail to signup', async () => {
     const userPayload = {
       avatar: 'httpsgoogle.',
@@ -36,8 +26,8 @@ describe('/api/auth/sign-up (e2e)', () => {
     const app = testHelper.app;
     const response = await request(app.getHttpServer())
       .post('/api/auth/sign-up')
-      .send(userPayload)
-      .set('Accept', 'application/json');
+      .set('Accept', 'application/json')
+      .send(userPayload);
 
     expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
   });
@@ -66,7 +56,7 @@ describe('/api/auth/sign-up (e2e)', () => {
 
   it('should login with password and retrieve profile successfully', async () => {
     const loginPayload = {
-      username: 'userA@userA.userA',
+      username: 'user@password.auth',
       password: '123456',
     };
 
@@ -82,7 +72,7 @@ describe('/api/auth/sign-up (e2e)', () => {
     expect(response.body.accessToken).toBeTruthy();
 
     const profileResponse = await request(app.getHttpServer())
-      .get('/api/auth/profile')
+      .get('/api/user/profile')
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
       .set('Authorization', `Bearer ${response.body.accessToken}`)
@@ -123,8 +113,8 @@ describe('/api/auth/sign-up (e2e)', () => {
     // Step 3: Sign up with credentials
     const signUpUserPayload = {
       avatar: 'https://google.com/image.png',
-      email: 'userxyz@userxyz.userxyz',
-      username: 'user',
+      email: 'userxyz@solana.userxyz',
+      username: 'userxyzsolana',
       displayName: 'user user',
       type: AuthType.Solana,
       credential: {
@@ -180,7 +170,6 @@ describe('/api/auth/sign-up (e2e)', () => {
 
     // Now to login
     const userPayload = {
-      username: 'userxyz@userxyz.userxyz',
       authType: AuthType.Solana,
       credential: {
         walletAddress: publicKey,
@@ -200,14 +189,14 @@ describe('/api/auth/sign-up (e2e)', () => {
     // Now to use access token to get profile
     const accessToken = response.body.accessToken;
     const profileResponse = await request(app.getHttpServer())
-      .get('/api/auth/profile')
+      .get('/api/user/profile')
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
-    expect(profileResponse.body.email).toEqual(userPayload.username);
+    expect(profileResponse.body.email).toEqual(signUpUserPayload.email);
   });
 
   it('should sign up with evm web3 sign successfully', async () => {
@@ -240,10 +229,6 @@ describe('/api/auth/sign-up (e2e)', () => {
 
     // Step 3: Sign up with credentials
     const signUpUserPayload = {
-      avatar: 'https://google.com/image.png',
-      email: 'userxyz@userxyz.userxyz',
-      username: 'user',
-      displayName: 'user user',
       type: AuthType.EVMChain,
       credential: {
         walletAddress: account.address,
@@ -293,7 +278,6 @@ describe('/api/auth/sign-up (e2e)', () => {
 
     // Now to login
     const userPayload = {
-      username: 'userxyz@userxyz.userxyz',
       authType: AuthType.EVMChain,
       credential: {
         walletAddress: account.address,
@@ -313,13 +297,13 @@ describe('/api/auth/sign-up (e2e)', () => {
     // Now to use access token to get profile
     const accessToken = response.body.accessToken;
     const profileResponse = await request(app.getHttpServer())
-      .get('/api/auth/profile')
+      .get('/api/user/profile')
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
-    expect(profileResponse.body.email).toEqual(userPayload.username);
+    expect(profileResponse.body.email).toBeFalsy();
   });
 });

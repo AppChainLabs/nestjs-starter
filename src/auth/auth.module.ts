@@ -22,6 +22,8 @@ import {
   AuthChallengeModel,
   AuthChallengeSchema,
 } from './entities/auth-challenge.entity';
+import { Otp } from '../providers/otp';
+import { Email } from '../providers/email';
 
 @Module({
   controllers: [AuthController],
@@ -34,6 +36,8 @@ import {
     PasswordAuthStrategy,
     JwtStrategy,
     Jwt,
+    Otp,
+    Email,
   ],
   imports: [
     ConfigModule,

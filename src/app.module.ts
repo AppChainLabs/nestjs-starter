@@ -5,10 +5,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
-import { EmailModule } from './email/email.module';
 import { AuthModule } from './auth/auth.module';
-import { getMemoryServerMongoUri } from './helper';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { getMemoryServerMongoUri } from './helper';
 
 @Module({
   imports: [
@@ -28,6 +27,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 
         let uri;
 
+        // if (env === 'test') uri = configService.get<string>('TEST_MONGO_URL');
         if (env === 'test') uri = await getMemoryServerMongoUri();
         else uri = configService.get<string>('MONGO_URL');
 
@@ -41,7 +41,6 @@ import { ThrottlerModule } from '@nestjs/throttler';
     // Import other modules
     UserModule,
     AuthModule,
-    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

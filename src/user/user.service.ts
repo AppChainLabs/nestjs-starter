@@ -1,23 +1,106 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
+import mongoose, { Model } from 'mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Model } from 'mongoose';
-import { InjectModel } from '@nestjs/mongoose';
+import {
+  AuthModel,
+  AuthDocument,
+  AuthType,
+} from '../auth/entities/auth.entity';
 import { UserDocument, UserModel } from './entities/user.entity';
+import { UpdateProfileAuthDto } from './dto/profile-user.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(UserModel.name)
     private UserDocument: Model<UserDocument>,
+
+    // inject connection
+    @InjectConnection() private readonly connection: mongoose.Connection,
+
+    // inject model
+    @InjectModel(AuthModel.name)
+    private AuthDocument: Model<AuthDocument>,
   ) {}
 
+  async updateProfile(userId: string, updateProfileDto: UpdateProfileAuthDto) {
+    const removeEmail = updateProfileDto.removeEmail;
+    delete updateProfileDto.removeEmail;
+
+    await this.UserDocument.findByIdAndUpdate(userId, {
+      $set: updateProfileDto,
+      $unset: removeEmail ? { email: 1 } : undefined,
+    });
+
+    return this.UserDocument.findById(userId);
+  }
+
+  async getUserAuthEntities(userId: string) {
+    return this.AuthDocument.find({ userId });
+  }
+
+  async deleteUserAuthEntity(userId: string, id: string) {
+    if ((await this.AuthDocument.count({ userId })) === 1) {
+      throw new UnprocessableEntityException(
+        'AUTH::DELETE::AT_LEAST_ONE_ENTITY_CONSTRAINT',
+      );
+    }
+
+    if (
+      (await this.AuthDocument.count({
+        _id: id,
+        userId,
+        type: AuthType.Password,
+      })) === 1
+    ) {
+      throw new UnprocessableEntityException(
+        'AUTH::DELETE::CANNOT_DELETE_PASSWORD_ENTITY_CONSTRAINT',
+      );
+    }
+
+    return this.AuthDocument.findOneAndRemove({
+      userId,
+      _id: id,
+    });
+  }
+
+  async validateEmailOrUsername(query: string) {
+    const existedUser = await this.findByEmailOrUsername(query);
+
+    if (existedUser) {
+      throw new ConflictException('USER::VALIDATION::EXISTED');
+    }
+  }
+
+  async validateWallet(walletAddress: string) {
+    const existedAuth = this.AuthDocument.findOne({
+      'credential.walletAddress': walletAddress,
+    });
+
+    if (existedAuth) {
+      throw new ConflictException('WALLET::VALIDATION::EXISTED');
+    }
+  }
+
   async create(createUserDto: CreateUserDto) {
+    if (createUserDto.email)
+      await this.validateEmailOrUsername(createUserDto.email);
+
+    if (createUserDto.username)
+      await this.validateEmailOrUsername(createUserDto.username);
+
     const user = new this.UserDocument(createUserDto);
     return user.save();
   }
 
-  findByEmailOrUsername(query: string) {
+  async findByEmailOrUsername(query: string) {
     return this.UserDocument.findOne({
       $or: [{ email: query }, { username: query }],
     });
@@ -38,18 +121,16 @@ export class UserService {
     );
   }
 
-  findById(id: string) {
+  async findById(id: string) {
     return this.UserDocument.findById(id);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const payload = { ...updateUserDto, updatedAt: new Date().getTime() };
-    await this.UserDocument.updateOne({ id }, { $set: payload });
-
+    await this.UserDocument.updateOne({ id }, { $set: updateUserDto });
     return this.findById(id);
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     return this.UserDocument.findByIdAndRemove(id);
   }
 }
