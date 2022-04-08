@@ -8,6 +8,10 @@ on:
   push:
     branches: [stable, develop]
 
+env:
+  PRIVATE_KEY: {{secret.PRIVATE_KEY}}
+  PUBLIC_KEY: {{secret.PUBLIC_KEY}}
+
 jobs:
   test:
     runs-on: ubuntu-latest
