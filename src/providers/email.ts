@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import NodeMailer from 'nodemailer';
+import * as NodeMailer from 'nodemailer';
 import * as EmailInstance from 'email-templates';
 import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
@@ -39,11 +39,14 @@ export class Email {
   ) {
     const emailInstance = new EmailInstance({
       message: {
-        from: this.configService.get<string>('SMTP_EMAIL_FROM_EMAIL'),
+        from: `${this.configService.get<string>(
+          'SMTP_EMAIL_FROM_EMAIL_NAME',
+        )} <${this.configService.get<string>('SMTP_EMAIL_FROM_EMAIL')}>`,
         sender: this.configService.get<string>('SMTP_EMAIL_FROM_EMAIL_NAME'),
         replyTo: this.configService.get<string>('SMTP_EMAIL_FROM_EMAIL'),
         inReplyTo: this.configService.get<string>('SMTP_EMAIL_FROM_EMAIL'),
       },
+      send: true,
       transport: this.getTransporter(),
     });
 
