@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import mongoose, { Model } from 'mongoose';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import * as fs from 'fs';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
