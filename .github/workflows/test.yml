@@ -12,6 +12,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     environment: test-env
+    env: # Or as an environment variable
+      PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+      PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
