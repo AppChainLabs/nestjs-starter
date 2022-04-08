@@ -77,6 +77,14 @@ export class UserController {
     return this.userService.deleteUserAuthEntity(session.user._id, id);
   }
 
+  @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
+  @SetMetadata('sessionType', [SessionType.Auth])
+  @Post('/profile/auth-entities/:auth_id/make-primary')
+  setPrimaryAuthEntity(@Param('auth_id') auth_id: string, @Request() req) {
+    const session = req.user;
+    return this.userService.setPrimaryAuthEntity(session.user._id, auth_id);
+  }
+
   @UseGuards(AuthGuard('jwt'), RolesGuard, RestrictJwtSessionGuard)
   @SetMetadata('sessionType', [SessionType.Auth])
   @SetMetadata('roles', [UserRole.SystemAdmin])

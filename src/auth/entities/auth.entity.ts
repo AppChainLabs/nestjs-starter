@@ -26,6 +26,7 @@ export class Auth {
   public userId: string;
   public type: AuthType;
   public credential: WalletCredential | PasswordCredential;
+  public isPrimary: boolean;
 }
 
 @Injectable()
@@ -39,9 +40,13 @@ export class AuthModel implements Auth {
 
   @Prop({ type: String, enum: AuthType })
   type: AuthType;
+
+  @Prop({ type: Boolean, default: false })
+  isPrimary: boolean;
 }
 
 export const AuthSchema = SchemaFactory.createForClass(AuthModel);
+
 AuthSchema.index({ type: 1, userId: 1, credential: 1 }, { unique: true });
 AuthSchema.index(
   { 'credential.walletAddress': 1 },

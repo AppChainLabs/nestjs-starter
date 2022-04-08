@@ -305,18 +305,21 @@ export class AuthService {
       });
 
       // then create auth entity
-      await this.createAuthEntity({
-        type: registrationDto.type,
-        credential: registrationDto.credential,
-        userId: user.id,
-      });
+      await this.createAuthEntity(
+        {
+          type: registrationDto.type,
+          credential: registrationDto.credential,
+          userId: user.id,
+        },
+        true,
+      );
     });
 
     await session.endSession();
     return user;
   }
 
-  async createAuthEntity(createAuthDto: CreateAuthDto) {
+  async createAuthEntity(createAuthDto: CreateAuthDto, isPrimary = false) {
     let credentialData;
 
     if (createAuthDto.type === AuthType.Password) {
@@ -373,6 +376,7 @@ export class AuthService {
       userId: createAuthDto.userId,
       credential: credentialData,
       type: createAuthDto.type,
+      isPrimary,
     });
 
     return authDocument.save();

@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -8,11 +9,7 @@ import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import {
-  AuthModel,
-  AuthDocument,
-  AuthType,
-} from '../auth/entities/auth.entity';
+import { AuthModel, AuthDocument } from '../auth/entities/auth.entity';
 import { UserDocument, UserModel } from './entities/user.entity';
 import { UpdateProfileAuthDto } from './dto/profile-user.dto';
 
@@ -29,6 +26,24 @@ export class UserService {
     @InjectModel(AuthModel.name)
     private AuthDocument: Model<AuthDocument>,
   ) {}
+
+  async setPrimaryAuthEntity(userId: string, authId: string) {
+    if (!(await this.AuthDocument.findOne({ userId, _id: authId }))) {
+      throw new ForbiddenException();
+    }
+
+    await this.AuthDocument.updateOne(
+      { userId, isPrimary: true },
+      { $set: { isPrimary: false } },
+    );
+
+    await this.AuthDocument.updateOne(
+      { userId, _id: authId },
+      { $set: { isPrimary: true } },
+    );
+
+    return this.AuthDocument.findById(authId);
+  }
 
   async updateProfile(userId: string, updateProfileDto: UpdateProfileAuthDto) {
     const removeEmail = updateProfileDto.removeEmail;
@@ -47,21 +62,9 @@ export class UserService {
   }
 
   async deleteUserAuthEntity(userId: string, id: string) {
-    if ((await this.AuthDocument.count({ userId })) === 1) {
+    if (await this.AuthDocument.findOne({ userId, _id: id, isPrimary: true })) {
       throw new UnprocessableEntityException(
-        'AUTH::DELETE::AT_LEAST_ONE_ENTITY_CONSTRAINT',
-      );
-    }
-
-    if (
-      (await this.AuthDocument.count({
-        _id: id,
-        userId,
-        type: AuthType.Password,
-      })) === 1
-    ) {
-      throw new UnprocessableEntityException(
-        'AUTH::DELETE::CANNOT_DELETE_PASSWORD_ENTITY_CONSTRAINT',
+        'AUTH::DELETE::CANNOT_DELETE_PRIMARY_ENTITY_CONSTRAINT',
       );
     }
 

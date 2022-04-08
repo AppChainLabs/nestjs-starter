@@ -109,10 +109,11 @@ describe('[profile] profile management', () => {
     expect(profileResponse.body[0].type).toEqual(AuthType.EVMChain);
   });
 
-  it('should fail if user try to delete one last auth entity', async () => {
+  it("should fail if user try to make other's auth as primary entity", async () => {
     const evmAuthUser = testHelper.evmAuthUser;
+    const passwordUser = testHelper.passwordAuthUser;
     const app = testHelper.app;
-    const accessToken = evmAuthUser.accessToken;
+    const accessToken = passwordUser.accessToken;
 
     const userService = testHelper.getModule<UserService>(UserService);
     const authEntities = await userService.getUserAuthEntities(
@@ -122,16 +123,18 @@ describe('[profile] profile management', () => {
     expect(authEntities.length).toEqual(1);
 
     const profileResponse = await request(app.getHttpServer())
-      .delete(`/api/user/profile/auth-entities/${authEntities[0].id}`)
+      .post(
+        `/api/user/profile/auth-entities/${authEntities[0].id}/make-primary`,
+      )
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
-    expect(profileResponse.statusCode).toEqual(HttpStatus.UNPROCESSABLE_ENTITY);
+    expect(profileResponse.statusCode).toEqual(HttpStatus.FORBIDDEN);
   });
 
-  it('should fail if user try to delete password auth entity', async () => {
+  it('should fail if user try to delete primary auth entity', async () => {
     const targetUser = testHelper.solanaPasswordAuthUser;
     const app = testHelper.app;
     const accessToken = targetUser.accessToken;
@@ -140,6 +143,8 @@ describe('[profile] profile management', () => {
     const authEntities = await userService.getUserAuthEntities(
       targetUser.userId,
     );
+
+    expect(authEntities[0].isPrimary).toEqual(true);
 
     const profileResponse = await request(app.getHttpServer())
       .delete(`/api/user/profile/auth-entities/${authEntities[0].id}`)
@@ -151,7 +156,41 @@ describe('[profile] profile management', () => {
     expect(profileResponse.statusCode).toEqual(HttpStatus.UNPROCESSABLE_ENTITY);
   });
 
-  it('should delete solana entity successfully', async () => {
+  it('should change primary auth entity successfully', async () => {
+    const solanaPasswordAuthUser = testHelper.solanaPasswordAuthUser;
+    const app = testHelper.app;
+    const accessToken = solanaPasswordAuthUser.accessToken;
+
+    const userService = testHelper.getModule<UserService>(UserService);
+    const authEntities = await userService.getUserAuthEntities(
+      solanaPasswordAuthUser.userId,
+    );
+
+    expect(authEntities.length).toEqual(2);
+    expect(authEntities[0].isPrimary).toEqual(true);
+    expect(authEntities[1].isPrimary).toEqual(false);
+
+    const profileResponse = await request(app.getHttpServer())
+      .post(
+        `/api/user/profile/auth-entities/${authEntities[1].id}/make-primary`,
+      )
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
+    expect(profileResponse.statusCode).toEqual(HttpStatus.CREATED);
+
+    const authEntitiesAfterChanges = await userService.getUserAuthEntities(
+      solanaPasswordAuthUser.userId,
+    );
+
+    expect(authEntitiesAfterChanges.length).toEqual(2);
+    expect(authEntitiesAfterChanges[0].isPrimary).toEqual(false);
+    expect(authEntitiesAfterChanges[1].isPrimary).toEqual(true);
+  });
+
+  it('should delete other non-primary auth entity successfully', async () => {
     const targetUser = testHelper.solanaPasswordAuthUser;
     const app = testHelper.app;
     const accessToken = targetUser.accessToken;
@@ -162,9 +201,11 @@ describe('[profile] profile management', () => {
     );
 
     expect(authEntities.length).toEqual(2);
+    expect(authEntities[0].isPrimary).toEqual(false);
+    expect(authEntities[1].isPrimary).toEqual(true);
 
     const profileResponse = await request(app.getHttpServer())
-      .delete(`/api/user/profile/auth-entities/${authEntities[1].id}`)
+      .delete(`/api/user/profile/auth-entities/${authEntities[0].id}`)
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
       .set('Authorization', `Bearer ${accessToken}`)
@@ -177,6 +218,7 @@ describe('[profile] profile management', () => {
     );
 
     expect(authEntitiesAfterDelete.length).toEqual(1);
+    expect(authEntitiesAfterDelete[0].isPrimary).toEqual(true);
   });
 
   it('should connect email successfully', async () => {
