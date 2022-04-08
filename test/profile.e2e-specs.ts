@@ -7,6 +7,25 @@ import { AuthType } from '../dist/auth/entities/auth.entity';
 import { AuthService } from '../src/auth/auth.service';
 
 describe('[profile] profile management', () => {
+  it('should send email otp verification successfully', async () => {
+    const app = testHelper.app;
+    const newEmail = 'test@email.ok';
+
+    const profileResponse = await request(app.getHttpServer())
+      .post(`/api/auth/send-email-verification/${newEmail}`)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .send();
+
+    expect(profileResponse.statusCode).toEqual(HttpStatus.CREATED);
+
+    const authService = testHelper.getModule<AuthService>(AuthService);
+    const authChallenges = await authService.findAuthChallengesByTarget(
+      newEmail,
+    );
+    expect(authChallenges.length).toEqual(1);
+  });
+
   it('should fail if validate an existed wallet address', async () => {
     const evmAuthUser = testHelper.evmAuthUser;
     const app = testHelper.app;

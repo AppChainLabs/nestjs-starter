@@ -38,6 +38,8 @@ import {
 } from './entities/auth-challenge.entity';
 import { Otp } from '../providers/otp';
 import { ConnectEmailAuthDto } from './dto/connect-email-auth.dto';
+import { Email, EmailTemplate } from '../providers/email';
+import { EmailVerifyOtpAuthDto } from './dto/email-verify-otp-auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -70,6 +72,8 @@ export class AuthService {
     private jwtOptions: Jwt,
 
     private otp: Otp,
+
+    private emailService: Email,
   ) {}
 
   private async generateChecksum(data: any) {
@@ -84,8 +88,16 @@ export class AuthService {
   }
 
   async sendEmailVerification(email: string) {
-    // TODO: send this otp token to email
-    return this.generateOtp(email);
+    await this.userService.validateEmailOrUsername(email);
+
+    const otp = await this.generateOtp(email);
+
+    return this.emailService.sendEmail<EmailVerifyOtpAuthDto>(
+      EmailTemplate.VERIFY_EMAIL_OTP,
+      { token: otp },
+      [email],
+      [],
+    );
   }
 
   async connectEmail(userId: string, connectEmailDto: ConnectEmailAuthDto) {
@@ -217,6 +229,10 @@ export class AuthService {
 
   findAuthChallengeById(id: string) {
     return this.AuthChallengeDocument.findById(id);
+  }
+
+  findAuthChallengesByTarget(target: string) {
+    return this.AuthChallengeDocument.find({ target });
   }
 
   async verifyWalletSignature(
