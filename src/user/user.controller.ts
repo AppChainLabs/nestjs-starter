@@ -31,6 +31,16 @@ import { UpdateProfileAuthDto } from './dto/profile-user.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Post('/validate/username/:query')
+  validateUsername(@Param('query') query: string) {
+    return this.userService.validateEmailOrUsername(query);
+  }
+
+  @Post('/validate/wallet-address/:query')
+  validateWalletAddress(@Param('query') query: string) {
+    return this.userService.validateWallet(query);
+  }
+
   @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
   @SetMetadata('sessionType', [SessionType.Auth])
   @Get('/profile')

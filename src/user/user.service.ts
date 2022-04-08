@@ -1,4 +1,8 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import mongoose, { Model } from 'mongoose';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 
@@ -67,7 +71,31 @@ export class UserService {
     });
   }
 
+  async validateEmailOrUsername(query: string) {
+    const existedUser = await this.findByEmailOrUsername(query);
+
+    if (existedUser) {
+      throw new ConflictException('USER::VALIDATION::EXISTED');
+    }
+  }
+
+  async validateWallet(walletAddress: string) {
+    const existedAuth = this.AuthDocument.findOne({
+      'credential.walletAddress': walletAddress,
+    });
+
+    if (existedAuth) {
+      throw new ConflictException('WALLET::VALIDATION::EXISTED');
+    }
+  }
+
   async create(createUserDto: CreateUserDto) {
+    if (createUserDto.email)
+      await this.validateEmailOrUsername(createUserDto.email);
+
+    if (createUserDto.username)
+      await this.validateEmailOrUsername(createUserDto.username);
+
     const user = new this.UserDocument(createUserDto);
     return user.save();
   }

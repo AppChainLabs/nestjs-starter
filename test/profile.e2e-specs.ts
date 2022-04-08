@@ -7,6 +7,32 @@ import { AuthType } from '../dist/auth/entities/auth.entity';
 import { AuthService } from '../src/auth/auth.service';
 
 describe('[profile] profile management', () => {
+  it('should fail if validate an existed wallet address', async () => {
+    const evmAuthUser = testHelper.evmAuthUser;
+    const app = testHelper.app;
+
+    const profileResponse = await request(app.getHttpServer())
+      .post(`/api/user/validate/wallet-address/${evmAuthUser.walletAddress}`)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .send();
+
+    expect(profileResponse.statusCode).toEqual(HttpStatus.CONFLICT);
+  });
+
+  it('should fail if validate an existed username/email', async () => {
+    const evmAuthUser = testHelper.evmAuthUser;
+    const app = testHelper.app;
+
+    const profileResponse = await request(app.getHttpServer())
+      .post(`/api/user/validate/username/${evmAuthUser.email}`)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .send();
+
+    expect(profileResponse.statusCode).toEqual(HttpStatus.CONFLICT);
+  });
+
   it('should get profile successfully', async () => {
     const evmAuthUser = testHelper.evmAuthUser;
     const app = testHelper.app;
