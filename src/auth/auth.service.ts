@@ -6,6 +6,7 @@ import {
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
+import * as ms from 'ms';
 
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UserService } from '../user/user.service';
@@ -156,6 +157,9 @@ export class AuthService {
 
     const checksum = await this.generateChecksum(payload);
 
+    const duration = Number(ms(this.jwtOptions.getSignInOptions().expiresIn));
+    const sessionExpiresAt = new Date(new Date().getTime() + duration);
+
     const sessionObj = new this.AuthSessionDocument({
       authId: authEntity.id,
       authorizerId: user.id,
@@ -163,7 +167,7 @@ export class AuthService {
       grantType: GrantType.Self,
       checksum,
       sessionType,
-      expiresIn: this.jwtOptions.getSignInOptions().expiresIn,
+      expiresAt: sessionExpiresAt,
     });
 
     const session = await sessionObj.save();

@@ -22,7 +22,7 @@ class AuthSession {
   authId: string;
   checksum: string;
   sessionType: SessionType;
-  expiresIn: string;
+  expiresAt: string;
 }
 
 @Injectable()
@@ -46,8 +46,8 @@ export class AuthSessionModel implements AuthSession {
   @Prop({ type: String, enum: SessionType, default: SessionType.Auth })
   readonly sessionType: SessionType;
 
-  @Prop({ type: String })
-  readonly expiresIn: string;
+  @Prop({ type: Date })
+  readonly expiresAt: string;
 }
 
 export const AuthModelSchema = SchemaFactory.createForClass(AuthSessionModel);
