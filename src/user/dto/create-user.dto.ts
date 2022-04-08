@@ -5,22 +5,26 @@ import {
   IsBoolean,
   IsEmail,
   IsEnum,
+  IsOptional,
   IsString,
   IsUrl,
   MaxLength,
 } from 'class-validator';
 
 export class CreateUserDto implements User {
+  @IsOptional()
   @IsUrl({
     require_protocol: true,
     require_valid_protocol: true,
   })
   avatar: string;
 
+  @IsOptional()
   @IsString()
   @MaxLength(32)
   displayName: string;
 
+  @IsOptional()
   @IsEmail()
   email: string;
 
@@ -34,6 +38,7 @@ export class CreateUserDto implements User {
   @ArrayUnique()
   roles: string[];
 
+  @IsOptional()
   @IsAlphanumeric()
   @MaxLength(32)
   username: string;

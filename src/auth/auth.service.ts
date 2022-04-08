@@ -187,6 +187,12 @@ export class AuthService {
     };
   }
 
+  findWalletAuthEntity(walletAddress: string) {
+    return this.AuthDocument.findOne({
+      'credential.walletAddress': walletAddress,
+    });
+  }
+
   findAuthEntityWithUserId(
     authType: AuthType,
     userId: string,
@@ -257,6 +263,13 @@ export class AuthService {
 
   async signUpUser(registrationDto: RegistrationAuthDto) {
     let user;
+
+    if (
+      registrationDto.type === AuthType.Password &&
+      (!registrationDto.email || !registrationDto.username)
+    ) {
+      throw new BadRequestException('AUTH::CREATE::CREDENTIAL_NOT_PROVIDED');
+    }
 
     const session = await this.connection.startSession();
     await session.withTransaction(async () => {

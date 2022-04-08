@@ -32,7 +32,6 @@ describe('[profile] profile management', () => {
       avatar: 'https://google.com/abcxyz',
       username: `EvmAuthUserChanged`,
       removeEmail: true,
-      displayName: 'Hello World',
     };
 
     const profileResponse = await request(app.getHttpServer())
@@ -45,7 +44,6 @@ describe('[profile] profile management', () => {
     expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
     expect(profileResponse.body.avatar).toEqual(payload.avatar);
     expect(profileResponse.body.username).toEqual(payload.username);
-    expect(profileResponse.body.displayName).toEqual(payload.displayName);
     expect(profileResponse.body.email).toBeFalsy();
   });
 

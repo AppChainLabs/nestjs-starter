@@ -23,7 +23,7 @@ import { RolesGuard } from '../auth/roles-guard.guard';
 import { UserRole } from './entities/user.entity';
 import { RestrictJwtSessionGuard } from '../auth/restrict-jwt-session.guard';
 import { SessionType } from '../auth/entities/auth-session.entity';
-import { UpdateProfileAuthDto } from './dto/profile-auth.dto';
+import { UpdateProfileAuthDto } from './dto/profile-user.dto';
 
 @ApiBearerAuth('Bearer')
 @ApiTags('user')

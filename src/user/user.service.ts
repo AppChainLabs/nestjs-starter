@@ -10,7 +10,7 @@ import {
   AuthType,
 } from '../auth/entities/auth.entity';
 import { UserDocument, UserModel } from './entities/user.entity';
-import { UpdateProfileAuthDto } from './dto/profile-auth.dto';
+import { UpdateProfileAuthDto } from './dto/profile-user.dto';
 
 @Injectable()
 export class UserService {

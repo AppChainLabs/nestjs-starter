@@ -170,7 +170,6 @@ describe('[auth] registration/login flows (e2e)', () => {
 
     // Now to login
     const userPayload = {
-      username: signUpUserPayload.email,
       authType: AuthType.Solana,
       credential: {
         walletAddress: publicKey,
@@ -197,7 +196,7 @@ describe('[auth] registration/login flows (e2e)', () => {
       .send();
 
     expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
-    expect(profileResponse.body.email).toEqual(userPayload.username);
+    expect(profileResponse.body.email).toEqual(signUpUserPayload.email);
   });
 
   it('should sign up with evm web3 sign successfully', async () => {
@@ -283,7 +282,6 @@ describe('[auth] registration/login flows (e2e)', () => {
 
     // Now to login
     const userPayload = {
-      username: signUpUserPayload.email,
       authType: AuthType.EVMChain,
       credential: {
         walletAddress: account.address,
@@ -310,6 +308,6 @@ describe('[auth] registration/login flows (e2e)', () => {
       .send();
 
     expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
-    expect(profileResponse.body.email).toEqual(userPayload.username);
+    expect(profileResponse.body.email).toEqual(signUpUserPayload.email);
   });
 });

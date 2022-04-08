@@ -26,6 +26,7 @@ export const initUserAdmin = async (app, userService: UserService) => {
     .set('Accept', 'application/json')
     .send(userPayload);
 
+  console.log(response.body);
   expect(response.statusCode).toEqual(HttpStatus.CREATED);
   expect(response.body._id).toBeTruthy();
 
@@ -284,7 +285,6 @@ export const initUserWithSolanaAuth = async (app, authService) => {
 
   // Now to login
   const userPayload = {
-    username: 'user@solana.auth',
     authType: AuthType.Solana,
     credential: {
       walletAddress: publicKey,
@@ -311,7 +311,7 @@ export const initUserWithSolanaAuth = async (app, authService) => {
     .send();
 
   expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
-  expect(profileResponse.body.email).toEqual(userPayload.username);
+  expect(profileResponse.body.email).toEqual('user@solana.auth');
 
   return {
     userId: profileResponse.body._id,
@@ -400,7 +400,6 @@ export const initUserWithEVMAuth = async (app, authService) => {
 
   // Now to login
   const userPayload = {
-    username: 'user@evm.auth',
     authType: AuthType.EVMChain,
     credential: {
       walletAddress: account.address,
@@ -427,7 +426,7 @@ export const initUserWithEVMAuth = async (app, authService) => {
     .send();
 
   expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
-  expect(profileResponse.body.email).toEqual(userPayload.username);
+  expect(profileResponse.body.email).toEqual('user@evm.auth');
 
   return {
     userId: profileResponse.body._id,
