@@ -229,10 +229,6 @@ describe('[auth] registration/login flows (e2e)', () => {
 
     // Step 3: Sign up with credentials
     const signUpUserPayload = {
-      avatar: 'https://google.com/image.png',
-      email: 'userxyz@evm.userxyz',
-      username: 'userxyzevm',
-      displayName: 'user user',
       type: AuthType.EVMChain,
       credential: {
         walletAddress: account.address,
@@ -308,6 +304,6 @@ describe('[auth] registration/login flows (e2e)', () => {
       .send();
 
     expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
-    expect(profileResponse.body.email).toEqual(signUpUserPayload.email);
+    expect(profileResponse.body.email).toBeFalsy();
   });
 });

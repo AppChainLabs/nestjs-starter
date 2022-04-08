@@ -26,7 +26,6 @@ export const initUserAdmin = async (app, userService: UserService) => {
     .set('Accept', 'application/json')
     .send(userPayload);
 
-  console.log(response.body);
   expect(response.statusCode).toEqual(HttpStatus.CREATED);
   expect(response.body._id).toBeTruthy();
 
