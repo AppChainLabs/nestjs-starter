@@ -6,12 +6,14 @@ import {
 } from '@nestjs/common';
 import mongoose, { Model } from 'mongoose';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import * as fs from 'fs';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthModel, AuthDocument } from '../auth/entities/auth.entity';
 import { UserDocument, UserModel } from './entities/user.entity';
 import { UpdateProfileAuthDto } from './dto/profile-user.dto';
+import { StorageService } from '../providers/file';
 
 @Injectable()
 export class UserService {
@@ -25,7 +27,15 @@ export class UserService {
     // inject model
     @InjectModel(AuthModel.name)
     private AuthDocument: Model<AuthDocument>,
+
+    private storageService: StorageService,
   ) {}
+
+  uploadFile(file: any) {
+    const { originalname, buffer } = file;
+    const fileName = `${new Date().getTime()}.${originalname}`;
+    return this.storageService.putStream(fileName, buffer);
+  }
 
   async setPrimaryAuthEntity(userId: string, authId: string) {
     if (!(await this.AuthDocument.findOne({ userId, _id: authId }))) {

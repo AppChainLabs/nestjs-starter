@@ -1,12 +1,15 @@
 import { NestFactory } from '@nestjs/core';
+import { contentParser } from 'fastify-multer';
+import helmet from 'fastify-helmet';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+
 import { AllExceptionsFilter } from './exception.filter';
+import { AppModule } from './app.module';
 
 const createMainAppHandler = async (module, adapter) => {
   return NestFactory.create<NestFastifyApplication>(module, adapter);
@@ -17,6 +20,20 @@ export const globalApply = (app) => {
   app.setGlobalPrefix('api/');
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalFilters(new AllExceptionsFilter());
+
+  try {
+    app.register(helmet, {
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: [`'self'`],
+          styleSrc: [`'self'`, `'unsafe-inline'`],
+          imgSrc: [`'self'`, 'data:', 'validator.swagger.io'],
+          scriptSrc: [`'self'`, `https: 'unsafe-inline'`],
+        },
+      },
+    });
+    app.register(contentParser);
+  } catch {}
 };
 
 async function bootstrap() {

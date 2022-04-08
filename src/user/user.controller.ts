@@ -12,9 +12,11 @@ import {
   SetMetadata,
   Request,
   Put,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -24,6 +26,7 @@ import { UserRole } from './entities/user.entity';
 import { RestrictJwtSessionGuard } from '../auth/restrict-jwt-session.guard';
 import { SessionType } from '../auth/entities/auth-session.entity';
 import { UpdateProfileAuthDto } from './dto/profile-user.dto';
+import { FastifyFilesInterceptor, imageFileFilter } from '../file.interceptor';
 
 @ApiBearerAuth('Bearer')
 @ApiTags('user')
@@ -58,6 +61,19 @@ export class UserController {
   ) {
     const session = req.user;
     return this.userService.updateProfile(session.user._id, updateProfileDto);
+  }
+
+  @ApiConsumes('multipart/form-data')
+  @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
+  @SetMetadata('sessionType', [SessionType.Auth])
+  @Post('/profile/upload-image')
+  @UseInterceptors(
+    FastifyFilesInterceptor('files', 1, {
+      fileFilter: imageFileFilter,
+    }),
+  )
+  async upload(@UploadedFiles() files: Express.Multer.File[]) {
+    return await this.userService.uploadFile(files[0]);
   }
 
   @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)

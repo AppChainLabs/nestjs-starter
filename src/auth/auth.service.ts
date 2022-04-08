@@ -286,7 +286,8 @@ export class AuthService {
 
     if (
       registrationDto.type === AuthType.Password &&
-      (!registrationDto.email || !registrationDto.username)
+      !registrationDto.email &&
+      !registrationDto.username
     ) {
       throw new BadRequestException('AUTH::CREATE::CREDENTIAL_NOT_PROVIDED');
     }

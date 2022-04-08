@@ -25,7 +25,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         errorMessage: message,
       };
 
-      return response.status(statusCode).json(errorPayload);
+      return response.status(statusCode).send(errorPayload);
     };
 
     if (exception instanceof MongoError) {
