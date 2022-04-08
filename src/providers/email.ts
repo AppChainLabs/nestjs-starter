@@ -42,7 +42,7 @@ export class Email {
         from: `${this.configService.get<string>(
           'SMTP_EMAIL_FROM_EMAIL_NAME',
         )} <${this.configService.get<string>('SMTP_EMAIL_FROM_EMAIL')}>`,
-        sender: this.configService.get<string>('SMTP_EMAIL_FROM_EMAIL_NAME'),
+        sender: this.configService.get<string>('SMTP_EMAIL_FROM_EMAIL'),
         replyTo: this.configService.get<string>('SMTP_EMAIL_FROM_EMAIL'),
         inReplyTo: this.configService.get<string>('SMTP_EMAIL_FROM_EMAIL'),
       },
