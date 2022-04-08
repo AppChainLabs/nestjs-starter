@@ -78,9 +78,9 @@ async function bootstrap() {
     SwaggerModule.setup('api', app, document);
 
     if (process.env.NODE_ENV === 'production') {
-      await app.listen(process.env.PORT || 5001, process.env.HOST || '0.0.0.0');
+      await app.listen(process.env.PORT || 5000, process.env.HOST || '0.0.0.0');
     } else {
-      await app.listen(process.env.PORT || 5001);
+      await app.listen(process.env.PORT || 5000);
     }
   }
 
