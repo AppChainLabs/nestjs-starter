@@ -25,11 +25,27 @@ import { RestrictJwtSessionGuard } from './restrict-jwt-session.guard';
 import { SessionType } from './entities/auth-session.entity';
 import { AuthType } from './entities/auth.entity';
 import { ConnectEmailAuthDto } from './dto/connect-email-auth.dto';
+import { RolesGuard } from './roles-guard.guard';
+import { AdminLoginDto } from '../admin/dto/admin-login.dto';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @UseGuards(AuthGuard(PasswordAuthStrategy.key), RolesGuard)
+  @SetMetadata('roles', [UserRole.SystemAdmin])
+  @Post('login-admin/')
+  async adminLogin(@Body() adminLoginDto: AdminLoginDto, @Request() req) {
+    const session = req.user;
+
+    await this.authService.verifyEmailOtp(
+      session.user.email,
+      adminLoginDto.token,
+    );
+
+    return this.authService.generateAccessToken('auth-admin', session);
+  }
 
   @UseGuards(AuthGuard(PasswordAuthStrategy.key))
   @Post('/login')

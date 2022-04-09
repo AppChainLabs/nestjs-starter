@@ -26,7 +26,6 @@ import {
   AdminCreateAuthEntityDto,
   AdminWalletCredentialDto,
 } from './dto/create-auth-entity.dto';
-import { AuthService } from '../auth/auth.service';
 import { UserService } from '../user/user.service';
 
 @Injectable()
@@ -51,21 +50,8 @@ export class AdminService {
     @InjectModel(UserModel.name)
     private UserDocument: Model<UserDocument>,
 
-    private authService: AuthService,
-
     private userService: UserService,
   ) {}
-
-  async adminLogin(
-    sessionObject: {
-      authEntity: AuthDocument;
-      user: UserDocument;
-    },
-    token: string,
-  ) {
-    await this.authService.verifyEmailOtp(sessionObject.user.email, token);
-    return this.authService.generateAccessToken('admin', sessionObject);
-  }
 
   async validateUserExistence(userId: string) {
     if (await this.UserDocument.findById(userId)) {
