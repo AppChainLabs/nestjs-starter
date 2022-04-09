@@ -35,7 +35,7 @@ export class AuthController {
 
   @UseGuards(AuthGuard(PasswordAuthStrategy.key), RolesGuard)
   @SetMetadata('roles', [UserRole.SystemAdmin])
-  @Post('login-admin/')
+  @Post('/login-admin')
   async adminLogin(@Body() adminLoginDto: AdminLoginDto, @Request() req) {
     const session = req.user;
 
@@ -44,7 +44,9 @@ export class AuthController {
       adminLoginDto.token,
     );
 
-    return this.authService.generateAccessToken('auth-admin', session);
+    const audience = req.headers.host;
+
+    return this.authService.generateAccessToken(audience, session);
   }
 
   @UseGuards(AuthGuard(PasswordAuthStrategy.key))
