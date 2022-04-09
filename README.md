@@ -3,6 +3,7 @@
 </p>
 
 [![Workflow](https://github.com/AppChainLabs/nestjs-starter/actions/workflows/test.yml/badge.svg)](https://github.com/AppChainLabs/nestjs-starter/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/AppChainLabs/nestjs-starter/branch/develop/graph/badge.svg?token=TN6EBYQQBY)](https://codecov.io/gh/AppChainLabs/nestjs-starter)
 
 ## Description
 
