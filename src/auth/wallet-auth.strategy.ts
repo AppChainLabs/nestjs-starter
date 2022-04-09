@@ -40,6 +40,8 @@ export class WalletAuthStrategy extends PassportStrategy(
       credential.walletAddress,
     )) as AuthDocument;
 
+    if (!authEntity) throw new UnauthorizedException();
+
     const user = await this.userService.findById(authEntity.userId);
     if (!user) throw new UnauthorizedException();
 

@@ -46,6 +46,8 @@ export class PasswordAuthStrategy extends PassportStrategy(
       user.id,
     );
 
+    if (!auth) throw new UnauthorizedException();
+
     const { credential } = auth as {
       id: string;
       credential: PasswordCredential;

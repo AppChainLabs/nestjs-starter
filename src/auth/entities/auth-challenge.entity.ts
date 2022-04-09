@@ -28,6 +28,6 @@ export class AuthChallengeModel implements AuthChallenge {
 export const AuthChallengeSchema =
   SchemaFactory.createForClass(AuthChallengeModel);
 
-AuthChallengeSchema.index({ walletAddress: 1 });
+AuthChallengeSchema.index({ target: 1 });
 
 export type AuthChallengeDocument = AuthChallenge & Document;

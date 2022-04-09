@@ -35,12 +35,12 @@ export class AdminController {
     private readonly userService: UserService,
   ) {}
 
-  @Post()
+  @Post('user/')
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
 
-  @Get()
+  @Get('user/')
   findAll(
     @Query('searchQuery') searchQuery: string,
     @Query('limit') limit: number,
@@ -50,17 +50,17 @@ export class AdminController {
     return this.userService.findAll(searchQuery, limit, skip, sort);
   }
 
-  @Get(':user_id')
+  @Get('user/:user_id')
   findOne(@Param('user_id') id: string) {
     return this.userService.findById(id);
   }
 
-  @Get(':user_id/auth-entities')
+  @Get('user/:user_id/auth-entities')
   getAuthEntities(@Param('user_id') user_id: string) {
     return this.userService.getUserAuthEntities(user_id);
   }
 
-  @Delete(':user_id/auth-entities/:auth_id')
+  @Delete('user/:user_id/auth-entities/:auth_id')
   deleteAuthEntity(
     @Param('auth_id') id: string,
     @Param('user_id') user_id: string,
@@ -68,12 +68,12 @@ export class AdminController {
     return this.userService.deleteUserAuthEntity(user_id, id);
   }
 
-  @Patch(':user_id')
+  @Patch('user/:user_id')
   update(@Param('user_id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto);
   }
 
-  @Delete(':user_id')
+  @Delete('user/:user_id')
   remove(@Param('user_id') id: string) {
     return this.userService.remove(id);
   }

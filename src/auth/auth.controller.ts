@@ -7,6 +7,7 @@ import {
   Post,
   Request,
   SetMetadata,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -19,7 +20,7 @@ import { LoginWalletAuthDto } from './dto/login-wallet-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { WalletAuthStrategy } from './wallet-auth.strategy';
 import { PasswordAuthStrategy } from './password-auth.strategy';
-import { UserDocument } from '../user/entities/user.entity';
+import { UserDocument, UserRole } from '../user/entities/user.entity';
 import { RestrictJwtSessionGuard } from './restrict-jwt-session.guard';
 import { SessionType } from './entities/auth-session.entity';
 import { AuthType } from './entities/auth.entity';
@@ -34,6 +35,11 @@ export class AuthController {
   @Post('/login')
   async login(@Body() loginDto: LoginAuthDto, @Request() req) {
     const session = req.user;
+
+    if (session.user.roles.find((role) => role === UserRole.SystemAdmin)) {
+      throw new UnauthorizedException(); // Prevent admin to login with normal endpoint
+    }
+
     const audience = req.headers.host;
     return this.authService.generateAccessToken(audience, session);
   }
@@ -45,6 +51,11 @@ export class AuthController {
     @Request() req,
   ) {
     const session = req.user;
+
+    if (session.user.roles.find((role) => role === UserRole.SystemAdmin)) {
+      throw new UnauthorizedException(); // Prevent admin to login with normal endpoint
+    }
+
     const audience = req.headers.host;
     return this.authService.generateAccessToken(audience, session);
   }
