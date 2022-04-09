@@ -100,19 +100,29 @@ export class AuthService {
     );
   }
 
-  async connectEmail(userId: string, connectEmailDto: ConnectEmailAuthDto) {
-    const user = await this.userService.findById(userId);
+  async verifyEmailOtp(email: string, token: string) {
     const latestAuthChallenge = await this.AuthChallengeDocument.findOne({
-      target: connectEmailDto.email,
+      target: email,
       isResolved: false,
     });
 
     if (
       !latestAuthChallenge ||
-      !this.otp.verify(connectEmailDto.token, latestAuthChallenge.message)
+      !this.otp.verify(token, latestAuthChallenge.message)
     ) {
       throw new BadRequestException('AUTH::INVALID_OTP');
     }
+
+    return latestAuthChallenge;
+  }
+
+  async connectEmail(userId: string, connectEmailDto: ConnectEmailAuthDto) {
+    const user = await this.userService.findById(userId);
+
+    const latestAuthChallenge = await this.verifyEmailOtp(
+      connectEmailDto.email,
+      connectEmailDto.token,
+    );
 
     let response;
     const session = await this.connection.startSession();

@@ -8,7 +8,6 @@ import mongoose, { Model } from 'mongoose';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthModel, AuthDocument } from '../auth/entities/auth.entity';
 import { UserDocument, UserModel } from './entities/user.entity';
 import { UpdateProfileAuthDto } from './dto/profile-user.dto';
@@ -30,10 +29,15 @@ export class UserService {
     private storageService: StorageService,
   ) {}
 
-  uploadFile(file: any) {
+  async uploadFile(userId: string, file: any) {
     const { originalname, buffer } = file;
     const fileName = `${new Date().getTime()}.${originalname}`;
-    return this.storageService.putStream(fileName, buffer);
+    const { url } = await this.storageService.putStream(fileName, buffer);
+
+    await this.UserDocument.updateOne(
+      { _id: userId },
+      { $set: { avatar: url } },
+    );
   }
 
   async setPrimaryAuthEntity(userId: string, authId: string) {
@@ -118,31 +122,7 @@ export class UserService {
     });
   }
 
-  findAll(searchQuery: string, limit: number, skip: number, sort: string) {
-    const reg = new RegExp(searchQuery, 'i');
-    return this.UserDocument.find(
-      {
-        $or: [
-          { email: { $regex: reg } },
-          { username: { $regex: reg } },
-          { displayName: { $regex: reg } },
-        ],
-      },
-      {},
-      { skip, limit, sort },
-    );
-  }
-
   async findById(id: string) {
     return this.UserDocument.findById(id);
-  }
-
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    await this.UserDocument.updateOne({ id }, { $set: updateUserDto });
-    return this.findById(id);
-  }
-
-  async remove(id: string) {
-    return this.UserDocument.findByIdAndRemove(id);
   }
 }

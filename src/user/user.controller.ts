@@ -65,8 +65,9 @@ export class UserController {
       fileFilter: imageFileFilter,
     }),
   )
-  async upload(@UploadedFiles() files: Express.Multer.File[]) {
-    return await this.userService.uploadFile(files[0]);
+  async upload(@UploadedFiles() files: Express.Multer.File[], @Request() req) {
+    const session = req.user;
+    return this.userService.uploadFile(session.user._id, files[0]);
   }
 
   @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)

@@ -74,7 +74,6 @@ describe('[profile] profile management', () => {
     const accessToken = evmAuthUser.accessToken;
 
     const payload = {
-      avatar: 'https://google.com/abcxyz',
       username: `EvmAuthUserChanged`,
       removeEmail: true,
     };
@@ -87,7 +86,6 @@ describe('[profile] profile management', () => {
       .send(payload);
 
     expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
-    expect(profileResponse.body.avatar).toEqual(payload.avatar);
     expect(profileResponse.body.username).toEqual(payload.username);
     expect(profileResponse.body.email).toBeFalsy();
   });

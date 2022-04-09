@@ -67,5 +67,6 @@ import { StorageService } from '../providers/file';
       inject: [ConfigService],
     }),
   ],
+  exports: [AuthService, HashingService],
 })
 export class AuthModule {}
