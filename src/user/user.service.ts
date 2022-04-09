@@ -77,7 +77,7 @@ export class UserService {
   async deleteUserAuthEntity(userId: string, id: string) {
     if (await this.AuthDocument.findOne({ userId, _id: id, isPrimary: true })) {
       throw new UnprocessableEntityException(
-        'AUTH::DELETE::CANNOT_DELETE_PRIMARY_ENTITY_CONSTRAINT',
+        'USER::AUTH_ENTITY::CANNOT_DELETE_PRIMARY_ENTITY_CONSTRAINT',
       );
     }
 
@@ -91,7 +91,7 @@ export class UserService {
     const existedUser = await this.findByEmailOrUsername(query);
 
     if (existedUser) {
-      throw new ConflictException('USER::VALIDATION::EXISTED');
+      throw new ConflictException('USER::AUTH_ENTITY::USER_EXISTED');
     }
   }
 
@@ -101,7 +101,7 @@ export class UserService {
     });
 
     if (existedAuth) {
-      throw new ConflictException('WALLET::VALIDATION::EXISTED');
+      throw new ConflictException('USER::AUTH_ENTITY::WALLET_EXISTED');
     }
   }
 

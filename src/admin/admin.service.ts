@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -8,25 +9,30 @@ import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 
 import {
-  AuthModel,
   AuthDocument,
+  AuthModel,
   AuthType,
+  HashingAlgorithm,
+  PasswordCredential,
+  WalletCredential,
 } from '../auth/entities/auth.entity';
 import {
-  AuthSessionModel,
   AuthSessionDocument,
+  AuthSessionModel,
 } from '../auth/entities/auth-session.entity';
 import {
-  AuthChallengeModel,
   AuthChallengeDocument,
+  AuthChallengeModel,
 } from '../auth/entities/auth-challenge.entity';
 import { UpdateUserDto } from '../user/dto/update-user.dto';
-import { UserModel, UserDocument } from '../user/entities/user.entity';
+import { UserDocument, UserModel } from '../user/entities/user.entity';
 import {
   AdminCreateAuthEntityDto,
+  AdminPasswordCredentialDto,
   AdminWalletCredentialDto,
 } from './dto/create-auth-entity.dto';
 import { UserService } from '../user/user.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class AdminService {
@@ -51,11 +57,13 @@ export class AdminService {
     private UserDocument: Model<UserDocument>,
 
     private userService: UserService,
+
+    private authService: AuthService,
   ) {}
 
   async validateUserExistence(userId: string) {
     if (await this.UserDocument.findById(userId)) {
-      throw new NotFoundException('ADMIN::AUTH::USER_NOT_EXISTED');
+      throw new NotFoundException('ADMIN::USER::USER_NOT_EXISTED');
     }
   }
 
@@ -65,31 +73,33 @@ export class AdminService {
     const user = await this.UserDocument.findById(userId);
 
     if (!user.username && !user.email) {
-      throw new ConflictException('ADMIN::AUTH::USER_INVALID_USERNAME');
+      throw new ConflictException('ADMIN::USER::USER_INVALID_USERNAME');
     }
   }
 
   async validateWalletCredential(
+    userId: string,
     adminCreateAuthEntityDto: AdminCreateAuthEntityDto,
   ) {
-    await this.validateUserExistence(adminCreateAuthEntityDto.userId);
+    await this.validateUserExistence(userId);
 
     const credential =
       adminCreateAuthEntityDto.credential as AdminWalletCredentialDto;
 
-    if (
-      await this.AuthDocument.findOne({
-        'credential.walletAddress': credential.walletAddress,
-      })
-    ) {
-      throw new ConflictException('ADMIN::AUTH::DUPLICATED_WALLET_ADDRESS');
-    }
+    await this.userService.validateWallet(credential.walletAddress);
   }
 
   async validatePasswordCredential(
+    userId: string,
     adminCreateAuthEntityDto: AdminCreateAuthEntityDto,
   ) {
-    await this.validateUserHasValidUsername(adminCreateAuthEntityDto.userId);
+    await this.validateUserHasValidUsername(userId);
+
+    const credential =
+      adminCreateAuthEntityDto.credential as AdminPasswordCredentialDto;
+
+    if (!credential.password)
+      throw new BadRequestException('ADMIN::USER::CREDENTIAL_NOT_PROVIDED');
   }
 
   async adminSetPrimaryAuthEntity(userId: string, authId: string) {
@@ -97,22 +107,49 @@ export class AdminService {
   }
 
   async adminCreateAuthEntity(
+    userId: string,
     adminCreateAuthEntityDto: AdminCreateAuthEntityDto,
   ) {
+    let credential: PasswordCredential | WalletCredential;
+
     switch (adminCreateAuthEntityDto.type) {
       case AuthType.Password:
-        await this.validatePasswordCredential(adminCreateAuthEntityDto);
+        await this.validatePasswordCredential(userId, adminCreateAuthEntityDto);
+
+        const rawPasswordCredential =
+          adminCreateAuthEntityDto.credential as AdminPasswordCredentialDto;
+
+        credential = {
+          password: await this.authService.hashPassword(
+            rawPasswordCredential.password,
+          ),
+          algorithm: HashingAlgorithm.BCrypt,
+        } as PasswordCredential;
         break;
 
       default:
-        await this.validateWalletCredential(adminCreateAuthEntityDto);
+        await this.validateWalletCredential(userId, adminCreateAuthEntityDto);
+
+        const rawWalletCredential =
+          adminCreateAuthEntityDto.credential as AdminWalletCredentialDto;
+
+        credential = {
+          walletAddress: rawWalletCredential.walletAddress,
+        } as WalletCredential;
+
         break;
     }
 
+    const isPrimary = !!!(await this.AuthDocument.findOne({
+      userId,
+      isPrimary: true,
+    }));
+
     const auth = new this.AuthDocument({
-      userId: adminCreateAuthEntityDto.userId,
+      userId,
       type: adminCreateAuthEntityDto.type,
-      credential: adminCreateAuthEntityDto.credential,
+      credential,
+      isPrimary,
     });
 
     return auth.save();
@@ -173,7 +210,7 @@ export class AdminService {
   async adminDeleteUserAuthEntity(userId: string, id: string) {
     if (await this.AuthDocument.findOne({ userId, _id: id, isPrimary: true })) {
       throw new UnprocessableEntityException(
-        'AUTH::DELETE::CANNOT_DELETE_PRIMARY_ENTITY_CONSTRAINT',
+        'ADMIN::AUTH_ENTITY::CANNOT_DELETE_PRIMARY_ENTITY_CONSTRAINT',
       );
     }
 

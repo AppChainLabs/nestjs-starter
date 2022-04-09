@@ -110,7 +110,7 @@ export class AuthService {
       !latestAuthChallenge ||
       !this.otp.verify(token, latestAuthChallenge.message)
     ) {
-      throw new BadRequestException('AUTH::INVALID_OTP');
+      throw new BadRequestException('AUTH::AUTH_CHALLENGE::INVALID_OTP');
     }
 
     return latestAuthChallenge;
@@ -299,7 +299,9 @@ export class AuthService {
       !registrationDto.email &&
       !registrationDto.username
     ) {
-      throw new BadRequestException('AUTH::CREATE::CREDENTIAL_NOT_PROVIDED');
+      throw new BadRequestException(
+        'AUTH::AUTH_ENTITY::CREDENTIAL_NOT_PROVIDED',
+      );
     }
 
     const session = await this.connection.startSession();
@@ -320,7 +322,7 @@ export class AuthService {
         {
           type: registrationDto.type,
           credential: registrationDto.credential,
-          userId: user.id,
+          userId: user._id,
         },
         true,
       );
@@ -328,6 +330,12 @@ export class AuthService {
 
     await session.endSession();
     return user;
+  }
+
+  async hashPassword(rawPassword: string) {
+    return this.hashingService
+      .getHasher(HashingAlgorithm.BCrypt)
+      .hash(rawPassword);
   }
 
   async createAuthEntity(createAuthDto: CreateAuthDto, isPrimary = false) {
@@ -338,7 +346,9 @@ export class AuthService {
         createAuthDto.credential as PasswordCredentialAuthDto;
 
       if (!credentialDto.password) {
-        throw new BadRequestException('AUTH::CREATE::CREDENTIAL_NOT_PROVIDED');
+        throw new BadRequestException(
+          'AUTH::AUTH_ENTITY::CREDENTIAL_NOT_PROVIDED',
+        );
       }
 
       if (
@@ -347,13 +357,10 @@ export class AuthService {
           type: createAuthDto.type,
         })
       )
-        throw new ConflictException(`AUTH::CREATE::DUPLICATED_ENTITIES`);
+        throw new ConflictException(`AUTH::AUTH_ENTITY::DUPLICATED_ENTITIES`);
 
       credentialData = {
-        password: await this.hashingService
-          .getHasher(HashingAlgorithm.BCrypt)
-          .hash(credentialDto.password),
-
+        password: await this.hashPassword(credentialDto.password),
         algorithm: HashingAlgorithm.BCrypt,
       } as PasswordCredential;
     } else {
@@ -364,7 +371,7 @@ export class AuthService {
           'credential.walletAddress': credentialDto.walletAddress,
         })
       )
-        throw new ConflictException(`AUTH::CREATE::DUPLICATED_WALLET`);
+        throw new ConflictException(`AUTH::AUTH_ENTITY::DUPLICATED_WALLET`);
 
       const isCredentialVerified = await this.verifyWalletSignature(
         createAuthDto.type,

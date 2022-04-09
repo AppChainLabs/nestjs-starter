@@ -52,5 +52,6 @@ AuthSchema.index(
   { 'credential.walletAddress': 1 },
   { unique: true, sparse: true },
 );
+AuthSchema.index({ userId: 1, isPrimary: 1 });
 
 export type AuthDocument = Auth & Document;

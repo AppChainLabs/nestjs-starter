@@ -25,9 +25,6 @@ export class AdminCreateAuthEntityDto {
   @IsEnum(AuthType)
   type: AuthType;
 
-  @IsString()
-  userId: string;
-
   @IsBoolean()
   isPrimary: boolean;
 }

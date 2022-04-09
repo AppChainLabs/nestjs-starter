@@ -10,6 +10,7 @@ import {
   SetMetadata,
   Query,
   Optional,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
@@ -22,6 +23,7 @@ import { UserRole } from '../user/entities/user.entity';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { UpdateUserDto } from '../user/dto/update-user.dto';
 import { UserService } from '../user/user.service';
+import { AdminCreateAuthEntityDto } from './dto/create-auth-entity.dto';
 
 @ApiBearerAuth('Bearer')
 @ApiTags('admin')
@@ -58,6 +60,22 @@ export class AdminController {
   @Get('user/:user_id/auth-entities')
   getAuthEntities(@Param('user_id') user_id: string) {
     return this.adminService.adminGetUserAuthEntities(user_id);
+  }
+
+  @Post('user/:user_id/auth-entities/:auth_id/make-primary')
+  setPrimaryEntity(
+    @Param('auth_id') auth_id: string,
+    @Param('user_id') user_id: string,
+  ) {
+    return this.adminService.adminSetPrimaryAuthEntity(user_id, auth_id);
+  }
+
+  @Post('user/:user_id/auth-entities/')
+  createAuthEntity(
+    @Param('user_id') user_id: string,
+    @Body() authDto: AdminCreateAuthEntityDto,
+  ) {
+    return this.adminService.adminCreateAuthEntity(authDto);
   }
 
   @Delete('user/:user_id/auth-entities/:auth_id')
