@@ -18,5 +18,6 @@ import { StorageService } from '../providers/file';
       { name: AuthModel.name, schema: AuthSchema },
     ]),
   ],
+  exports: [UserService],
 })
 export class UserModule {}

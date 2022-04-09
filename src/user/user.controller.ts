@@ -86,7 +86,6 @@ export class UserController {
 
   @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
   @SetMetadata('sessionType', [SessionType.Auth])
-  @SetMetadata('roles', [UserRole.SystemAdmin])
   @Delete('/profile/auth-entities/:auth_id')
   deleteUserAuthEntity(@Param('auth_id') id: string, @Request() req) {
     const session = req.user;
@@ -99,68 +98,5 @@ export class UserController {
   setPrimaryAuthEntity(@Param('auth_id') auth_id: string, @Request() req) {
     const session = req.user;
     return this.userService.setPrimaryAuthEntity(session.user._id, auth_id);
-  }
-
-  @UseGuards(AuthGuard('jwt'), RolesGuard, RestrictJwtSessionGuard)
-  @SetMetadata('sessionType', [SessionType.Auth])
-  @SetMetadata('roles', [UserRole.SystemAdmin])
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
-  }
-
-  @UseGuards(AuthGuard('jwt'), RolesGuard, RestrictJwtSessionGuard)
-  @SetMetadata('sessionType', [SessionType.Auth])
-  @SetMetadata('roles', [UserRole.SystemAdmin])
-  @Get()
-  findAll(
-    @Query('searchQuery') searchQuery: string,
-    @Query('limit') limit: number,
-    @Query('skip') skip: number,
-    @Optional() @Query('sort') sort = '-createdAt',
-  ) {
-    return this.userService.findAll(searchQuery, limit, skip, sort);
-  }
-
-  @UseGuards(AuthGuard('jwt'), RolesGuard, RestrictJwtSessionGuard)
-  @SetMetadata('sessionType', [SessionType.Auth])
-  @SetMetadata('roles', [UserRole.SystemAdmin])
-  @Get(':user_id')
-  findOne(@Param('user_id') id: string) {
-    return this.userService.findById(id);
-  }
-
-  @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
-  @SetMetadata('sessionType', [SessionType.Auth])
-  @SetMetadata('roles', [UserRole.SystemAdmin])
-  @Get(':user_id/auth-entities')
-  getAuthEntities(@Param('user_id') user_id: string) {
-    return this.userService.getUserAuthEntities(user_id);
-  }
-
-  @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
-  @SetMetadata('sessionType', [SessionType.Auth])
-  @Delete(':user_id/auth-entities/:auth_id')
-  deleteAuthEntity(
-    @Param('auth_id') id: string,
-    @Param('user_id') user_id: string,
-  ) {
-    return this.userService.deleteUserAuthEntity(user_id, id);
-  }
-
-  @UseGuards(AuthGuard('jwt'), RolesGuard, RestrictJwtSessionGuard)
-  @SetMetadata('sessionType', [SessionType.Auth])
-  @SetMetadata('roles', [UserRole.SystemAdmin])
-  @Patch(':user_id')
-  update(@Param('user_id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(id, updateUserDto);
-  }
-
-  @UseGuards(AuthGuard('jwt'), RolesGuard, RestrictJwtSessionGuard)
-  @SetMetadata('sessionType', [SessionType.Auth])
-  @SetMetadata('roles', [UserRole.SystemAdmin])
-  @Delete(':user_id')
-  remove(@Param('user_id') id: string) {
-    return this.userService.remove(id);
   }
 }

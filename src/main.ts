@@ -61,7 +61,7 @@ async function bootstrap() {
 
   if (process.env.NODE_ENV !== 'test') {
     const config = new DocumentBuilder()
-      .setTitle('A8 Broker API')
+      .setTitle('AppChain NestJs Starter Broker API')
       .setDescription('Todo: update description')
       .setVersion('1.0')
       .addTag('Ancient8')
