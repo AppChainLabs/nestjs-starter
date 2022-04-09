@@ -27,12 +27,12 @@ jobs:
       - run: yarn test
       - run: yarn test:e2e
       - name: coverage
-          uses: codecov/codecov-action@v2
-          with:
-            token: ${{ secrets.CODECOV_TOKEN }}
-            directory: ./coverage/
-            fail_ci_if_error: true
-            files: ./coverage/clover.xml
-            flags: e2etests
-            name: e2etests
-            verbose: true
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ./coverage/
+          fail_ci_if_error: true
+          files: ./coverage/clover.xml
+          flags: e2etests
+          name: e2etests
+          verbose: true
