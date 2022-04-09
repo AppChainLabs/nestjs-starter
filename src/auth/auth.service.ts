@@ -319,10 +319,10 @@ export class AuthService {
 
       // then create auth entity
       await this.createAuthEntity(
+        user._id,
         {
           type: registrationDto.type,
           credential: registrationDto.credential,
-          userId: user._id,
         },
         true,
       );
@@ -338,7 +338,11 @@ export class AuthService {
       .hash(rawPassword);
   }
 
-  async createAuthEntity(createAuthDto: CreateAuthDto, isPrimary = false) {
+  async createAuthEntity(
+    userId: string,
+    createAuthDto: CreateAuthDto,
+    isPrimary = false,
+  ) {
     let credentialData;
 
     if (createAuthDto.type === AuthType.Password) {
@@ -353,7 +357,7 @@ export class AuthService {
 
       if (
         await this.AuthDocument.findOne({
-          userId: createAuthDto.userId,
+          userId,
           type: createAuthDto.type,
         })
       )
@@ -391,7 +395,7 @@ export class AuthService {
     }
 
     const authDocument = new this.AuthDocument({
-      userId: createAuthDto.userId,
+      userId,
       credential: credentialData,
       type: createAuthDto.type,
       isPrimary,

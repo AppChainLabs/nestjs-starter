@@ -9,7 +9,4 @@ export class CreateAuthDto {
 
   @IsEnum(AuthType)
   type: AuthType;
-
-  @IsString()
-  userId: string;
 }

@@ -97,15 +97,11 @@ export class AuthController {
 
     const { user } = session as unknown as { user: UserDocument };
 
-    if (user.id.toString() !== createAuthDto.userId) {
-      throw new ForbiddenException();
-    }
-
     if (createAuthDto.type === AuthType.Password) {
       throw new BadRequestException();
     }
 
-    return this.authService.createAuthEntity(createAuthDto);
+    return this.authService.createAuthEntity(user._id, createAuthDto);
   }
 
   @Post('/send-email-verification/:email')

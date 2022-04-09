@@ -10,7 +10,6 @@ import {
   SetMetadata,
   Query,
   Optional,
-  BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
@@ -75,7 +74,7 @@ export class AdminController {
     @Param('user_id') user_id: string,
     @Body() authDto: AdminCreateAuthEntityDto,
   ) {
-    return this.adminService.adminCreateAuthEntity(authDto);
+    return this.adminService.adminCreateAuthEntity(user_id, authDto);
   }
 
   @Delete('user/:user_id/auth-entities/:auth_id')

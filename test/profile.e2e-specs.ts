@@ -224,9 +224,9 @@ describe('[profile] profile management', () => {
     const app = testHelper.app;
     const accessToken = targetUser.accessToken;
 
-    const authService = testHelper.getModule<AuthService>(AuthService);
 
     const newEmail = 'newemail@abcxyz.com';
+    const authService = testHelper.getModule<AuthService>(AuthService);
     const otp = await authService.generateOtp(newEmail);
 
     const profileResponse = await request(app.getHttpServer())

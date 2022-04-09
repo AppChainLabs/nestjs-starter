@@ -8,6 +8,7 @@ import * as bs from 'bs58';
 import { UserService } from '../src/user/user.service';
 import { UserRole } from '../src/user/entities/user.entity';
 import { testHelper } from './test-entrypoint.e2e-spec';
+import { AuthService } from '../src/auth/auth.service';
 
 export const initUserAdmin = async (app, userService: UserService) => {
   const userPayload = {
@@ -33,13 +34,17 @@ export const initUserAdmin = async (app, userService: UserService) => {
   userObj.roles = [UserRole.SystemAdmin];
   await userObj.save();
 
+  const authService = testHelper.getModule<AuthService>(AuthService);
+  const otp = await authService.generateOtp(userPayload.email);
+
   const loginPayload = {
     username: 'user@admin.auth',
     password: '123456',
+    token: otp,
   };
 
   const loginResponse = await request(app.getHttpServer())
-    .post('/api/auth/login')
+    .post('/api/auth/login-admin')
     .set('Content-Type', 'application/json')
     .set('Accept', 'application/json')
     .send(loginPayload);

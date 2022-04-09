@@ -160,10 +160,10 @@ export class TestHelper {
       this.app,
       this.getModule<AuthService>(AuthService),
     );
-    // this.userAuthAdmin = await initUserAdmin(
-    //   this.app,
-    //   this.moduleFixture.get<UserService>(UserService),
-    // );
+    this.userAuthAdmin = await initUserAdmin(
+      this.app,
+      this.moduleFixture.get<UserService>(UserService),
+    );
     this.solanaPasswordAuthUser = await initUsersWithSolanaPasswordAuth(
       this.app,
     );

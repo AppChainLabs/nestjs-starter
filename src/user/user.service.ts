@@ -71,7 +71,7 @@ export class UserService {
   }
 
   async getUserAuthEntities(userId: string) {
-    return this.AuthDocument.find({ userId });
+    return this.AuthDocument.find({ userId }, {}, { sort: 'createdAt' });
   }
 
   async deleteUserAuthEntity(userId: string, id: string) {
