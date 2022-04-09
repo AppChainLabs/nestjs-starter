@@ -3,12 +3,9 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
-  Query,
   UseGuards,
-  Optional,
   SetMetadata,
   Request,
   Put,
@@ -19,10 +16,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { RolesGuard } from '../auth/roles-guard.guard';
-import { UserRole } from './entities/user.entity';
 import { RestrictJwtSessionGuard } from '../auth/restrict-jwt-session.guard';
 import { SessionType } from '../auth/entities/auth-session.entity';
 import { UpdateProfileAuthDto } from './dto/profile-user.dto';
