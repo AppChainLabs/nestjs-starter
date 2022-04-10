@@ -1,15 +1,59 @@
 import * as request from 'supertest';
 import { HttpStatus } from '@nestjs/common';
+import mongoose from 'mongoose';
+import { getModelToken } from '@nestjs/mongoose';
 
 import { UserService } from '../src/user/user.service';
 import { testHelper } from './test-entrypoint.e2e-spec';
 import { AuthType } from '../src/auth/entities/auth.entity';
 import { AuthService } from '../src/auth/auth.service';
+import {
+  AuthSessionModel,
+  SessionType,
+} from '../src/auth/entities/auth-session.entity';
 
-describe('[profile] profile management', () => {
+describe('[profile] profile management tests (e2e)', () => {
+  it('should send email for wallet connect link successfully', async () => {
+    const passwordAuthUser = testHelper.passwordAuthUser;
+    const app = testHelper.app;
+
+    const RefAuthSessionDocument = testHelper.getModule<
+      mongoose.Model<AuthSessionModel>
+    >(getModelToken(AuthSessionModel.name));
+
+    const authDocumentsBefore = await RefAuthSessionDocument.find(
+      {
+        userId: passwordAuthUser.userId,
+      },
+      {},
+      { sort: '-createdAt' },
+    );
+
+    expect(authDocumentsBefore.length).toBeGreaterThanOrEqual(1);
+
+    const profileResponse = await request(app.getHttpServer())
+      .post(`/api/auth/send-connect-wallet-link/${passwordAuthUser.email}`)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .send();
+
+    expect(profileResponse.statusCode).toEqual(HttpStatus.CREATED);
+
+    const authChallenges = await RefAuthSessionDocument.find(
+      {
+        userId: passwordAuthUser.userId,
+      },
+      {},
+      { sort: '-createdAt' },
+    );
+
+    expect(authChallenges.length).toEqual(authDocumentsBefore.length + 1);
+    expect(authChallenges[0].sessionType).toEqual(SessionType.ResetCredential);
+  });
+
   it('should send email otp verification successfully', async () => {
     const app = testHelper.app;
-    const newEmail = 'test@email.ok';
+    const newEmail = 'testxyz@email.ok';
 
     const profileResponse = await request(app.getHttpServer())
       .post(`/api/auth/send-email-verification/${newEmail}`)
@@ -223,7 +267,6 @@ describe('[profile] profile management', () => {
     const targetUser = testHelper.solanaPasswordAuthUser;
     const app = testHelper.app;
     const accessToken = targetUser.accessToken;
-
 
     const newEmail = 'newemail@abcxyz.com';
     const authService = testHelper.getModule<AuthService>(AuthService);

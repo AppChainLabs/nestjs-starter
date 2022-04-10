@@ -4,9 +4,14 @@ import * as EmailInstance from 'email-templates';
 import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
 import JSONTransport from 'nodemailer/lib/json-transport';
+import {
+  ConnectWalletViaEmailDto,
+  EmailVerifyOtpAuthDto,
+} from '../auth/dto/email-verify-otp-auth.dto';
 
 export enum EmailTemplate {
   VERIFY_EMAIL_OTP = 'verify-email-otp',
+  CONNECT_WALLET_VIA_EMAIL = 'connect-wallet-via-email',
 }
 
 @Injectable()
@@ -62,5 +67,28 @@ export class Email {
       },
       locals: context as any,
     });
+  }
+
+  async sendVerificationEmail(context: { token: string }, email: string) {
+    await this.sendEmail<EmailVerifyOtpAuthDto>(
+      EmailTemplate.VERIFY_EMAIL_OTP,
+      context,
+      [email],
+      [],
+    );
+  }
+
+  async sendConnectWalletEmail(
+    context: { email: string; connectWalletLink: string },
+    email: string,
+  ) {
+    const res = await this.sendEmail<ConnectWalletViaEmailDto>(
+      EmailTemplate.CONNECT_WALLET_VIA_EMAIL,
+      context,
+      [email],
+      [],
+    );
+
+    console.log({res});
   }
 }

@@ -38,8 +38,8 @@ import {
 } from './entities/auth-challenge.entity';
 import { Otp } from '../providers/otp';
 import { ConnectEmailAuthDto } from './dto/connect-email-auth.dto';
-import { Email, EmailTemplate } from '../providers/email';
-import { EmailVerifyOtpAuthDto } from './dto/email-verify-otp-auth.dto';
+import { Email } from '../providers/email';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -74,6 +74,8 @@ export class AuthService {
     private otp: Otp,
 
     private emailService: Email,
+
+    private configService: ConfigService,
   ) {}
 
   private async generateChecksum(data: any) {
@@ -89,15 +91,29 @@ export class AuthService {
 
   async sendEmailVerification(email: string) {
     await this.userService.validateEmailOrUsername(email);
-
     const otp = await this.generateOtp(email);
+    await this.emailService.sendVerificationEmail({ token: otp }, email);
+  }
 
-    return this.emailService.sendEmail<EmailVerifyOtpAuthDto>(
-      EmailTemplate.VERIFY_EMAIL_OTP,
-      { token: otp },
-      [email],
-      [],
-    );
+  async sendEmailToConnectWallet(email: string) {
+    const user = await this.userService.findByEmail(email);
+
+    if (user) {
+      const { accessToken } = await this.generateAccessToken(
+        'connect-wallet-via-email',
+        { authEntity: {} as any, user },
+        SessionType.ResetCredential,
+      );
+
+      const connectWalletLink = `${this.configService.get<string>(
+        'FRONTEND_URL',
+      )}/wallet-connect-via-email?authToken=${accessToken}`;
+
+      await this.emailService.sendConnectWalletEmail(
+        { email, connectWalletLink },
+        email,
+      );
+    }
   }
 
   async verifyEmailOtp(email: string, token: string) {
@@ -161,7 +177,13 @@ export class AuthService {
 
   async generateAccessToken(
     audience: string,
-    { authEntity, user }: { authEntity: AuthDocument; user: UserDocument },
+    {
+      authEntity,
+      user,
+    }: {
+      authEntity: AuthDocument;
+      user: UserDocument;
+    },
     sessionType = SessionType.Auth,
   ) {
     const payload = {

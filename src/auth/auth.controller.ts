@@ -7,7 +7,6 @@ import {
   Post,
   Request,
   SetMetadata,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -55,7 +54,7 @@ export class AuthController {
     const session = req.user;
 
     if (session.user.roles.find((role) => role === UserRole.SystemAdmin)) {
-      throw new UnauthorizedException(); // Prevent admin to login with normal endpoint
+      throw new ForbiddenException(); // Prevent admin to login with normal endpoint
     }
 
     const audience = req.headers.host;
@@ -68,10 +67,14 @@ export class AuthController {
     @Body() loginWalletDto: LoginWalletAuthDto,
     @Request() req,
   ) {
+    if (loginWalletDto.type === AuthType.Password) {
+      throw new BadRequestException();
+    }
+
     const session = req.user;
 
     if (session.user.roles.find((role) => role === UserRole.SystemAdmin)) {
-      throw new UnauthorizedException(); // Prevent admin to login with normal endpoint
+      throw new ForbiddenException(); // Prevent admin to login with normal endpoint
     }
 
     const audience = req.headers.host;
@@ -90,18 +93,23 @@ export class AuthController {
 
   @ApiBearerAuth('Bearer')
   @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
-  @SetMetadata('sessionType', [SessionType.Auth])
+  @SetMetadata('sessionType', [SessionType.Auth, SessionType.ResetCredential])
   @Post('/connect-wallet')
   connectWallet(@Body() createAuthDto: CreateAuthDto, @Request() req) {
-    const session = req.user;
-
-    const { user } = session as unknown as { user: UserDocument };
-
     if (createAuthDto.type === AuthType.Password) {
       throw new BadRequestException();
     }
 
+    const session = req.user;
+
+    const { user } = session as unknown as { user: UserDocument };
+
     return this.authService.createAuthEntity(user._id, createAuthDto);
+  }
+
+  @Post('/send-connect-wallet-link/:email')
+  sendConnectWalletLink(@Param('email') email: string) {
+    return this.authService.sendEmailToConnectWallet(email);
   }
 
   @Post('/send-email-verification/:email')

@@ -33,7 +33,7 @@ export class WalletAuthStrategy extends PassportStrategy(
   }
 
   private async validateUserWithWalletCredential(
-    authType: AuthType,
+    type: AuthType,
     credential: WalletCredentialAuthDto,
   ) {
     const authEntity = (await this.authService.findWalletAuthEntity(
@@ -46,7 +46,7 @@ export class WalletAuthStrategy extends PassportStrategy(
     if (!user) throw new UnauthorizedException();
 
     const isCredentialVerified = await this.authService.verifyWalletSignature(
-      authType,
+      type,
       credential,
       authEntity.credential as WalletCredential,
     );
@@ -59,11 +59,11 @@ export class WalletAuthStrategy extends PassportStrategy(
   async validate(
     @Req() req: Request,
   ): Promise<{ authEntity: AuthDocument; user: UserDocument }> {
-    const { authType, credential } = req.body as unknown as {
-      authType: AuthType;
+    const { type, credential } = req.body as unknown as {
+      type: AuthType;
       credential: WalletCredentialAuthDto;
     };
 
-    return this.validateUserWithWalletCredential(authType, credential);
+    return this.validateUserWithWalletCredential(type, credential);
   }
 }

@@ -122,6 +122,12 @@ export class UserService {
     });
   }
 
+  async findByEmail(email: string) {
+    return this.UserDocument.findOne({
+      $or: [{ email }],
+    });
+  }
+
   async findById(id: string) {
     return this.UserDocument.findById(id);
   }

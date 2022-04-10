@@ -4,7 +4,7 @@ import { WalletCredentialAuthDto } from './wallet-credential-auth.dto';
 
 export class LoginWalletAuthDto {
   @IsEnum(AuthType)
-  authType: AuthType;
+  type: AuthType;
 
   @ValidateNested()
   credential: WalletCredentialAuthDto;

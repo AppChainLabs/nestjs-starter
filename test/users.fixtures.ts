@@ -289,7 +289,7 @@ export const initUserWithSolanaAuth = async (app, authService) => {
 
   // Now to login
   const userPayload = {
-    authType: AuthType.Solana,
+    type: AuthType.Solana,
     credential: {
       walletAddress: publicKey,
       signedData: encodedLoginSignedMessage,
@@ -404,7 +404,7 @@ export const initUserWithEVMAuth = async (app, authService) => {
 
   // Now to login
   const userPayload = {
-    authType: AuthType.EVMChain,
+    type: AuthType.EVMChain,
     credential: {
       walletAddress: account.address,
       signedData: signedLoginData.signature,

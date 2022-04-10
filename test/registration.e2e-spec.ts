@@ -170,7 +170,7 @@ describe('[auth] registration/login flows (e2e)', () => {
 
     // Now to login
     const userPayload = {
-      authType: AuthType.Solana,
+      type: AuthType.Solana,
       credential: {
         walletAddress: publicKey,
         signedData: encodedLoginSignedMessage,
@@ -278,7 +278,7 @@ describe('[auth] registration/login flows (e2e)', () => {
 
     // Now to login
     const userPayload = {
-      authType: AuthType.EVMChain,
+      type: AuthType.EVMChain,
       credential: {
         walletAddress: account.address,
         signedData: signedLoginData.signature,

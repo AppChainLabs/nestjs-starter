@@ -50,8 +50,7 @@ describe('[auth] connect wallets test (e2e)', () => {
 
     // Now to login
     const userPayload = {
-      username: passwordAuthUser.email,
-      authType: AuthType.EVMChain,
+      type: AuthType.EVMChain,
       credential: {
         walletAddress: evmKeyPair.walletAddress,
         signedData: signedLoginData,
@@ -126,8 +125,7 @@ describe('[auth] connect wallets test (e2e)', () => {
 
     // Now to login
     const userPayload = {
-      username: passwordAuthUser.email,
-      authType: AuthType.Solana,
+      type: AuthType.Solana,
       credential: {
         walletAddress: solanaKeypair.walletAddress,
         signedData: signedLoginData,
