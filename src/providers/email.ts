@@ -82,13 +82,11 @@ export class Email {
     context: { email: string; connectWalletLink: string },
     email: string,
   ) {
-    const res = await this.sendEmail<ConnectWalletViaEmailDto>(
+    await this.sendEmail<ConnectWalletViaEmailDto>(
       EmailTemplate.CONNECT_WALLET_VIA_EMAIL,
       context,
       [email],
       [],
     );
-
-    console.log({res});
   }
 }
