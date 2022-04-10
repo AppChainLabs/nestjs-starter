@@ -266,6 +266,10 @@ export class AuthService {
     return this.AuthSessionDocument.findById(authSessionId);
   }
 
+  findAuthEntityById(authId: string) {
+    return this.AuthDocument.findById(authId);
+  }
+
   findAuthChallengeById(id: string) {
     return this.AuthChallengeDocument.findById(id);
   }

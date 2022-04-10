@@ -234,7 +234,6 @@ export const initUserWithSolanaAuth = async (app, authService) => {
   // Step 3: Sign up with credentials
   const signUpUserPayload = {
     avatar: 'https://google.com/image.png',
-    email: 'user@solana.auth',
     displayName: 'user solana auth',
     type: AuthType.Solana,
     credential: {
@@ -311,11 +310,9 @@ export const initUserWithSolanaAuth = async (app, authService) => {
     .send();
 
   expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
-  expect(profileResponse.body.email).toEqual('user@solana.auth');
 
   return {
     userId: profileResponse.body._id,
-    email: 'user@solana.auth',
     privateKey: bs.encode(keypair.secretKey),
     walletAddress: keypair.publicKey.toBase58(),
     accessToken,
@@ -425,11 +422,9 @@ export const initUserWithEVMAuth = async (app, authService) => {
     .send();
 
   expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
-  expect(profileResponse.body.email).toEqual('user@evm.auth');
 
   return {
     userId: profileResponse.body._id,
-    email: 'user@evm.auth',
     privateKey: account.privateKey,
     walletAddress: account.address,
     accessToken,

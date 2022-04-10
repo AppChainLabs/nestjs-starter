@@ -214,9 +214,19 @@ export class AdminService {
       );
     }
 
-    return this.AuthDocument.findOneAndRemove({
-      userId,
-      _id: id,
+    const session = await this.connection.startSession();
+
+    await session.withTransaction(async () => {
+      await this.AuthDocument.findOneAndRemove({
+        userId,
+        _id: id,
+      });
+
+      await this.AuthSessionDocument.remove({
+        authId: id,
+      });
     });
+
+    await session.endSession();
   }
 }

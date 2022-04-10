@@ -12,6 +12,10 @@ import { AuthModel, AuthDocument } from '../auth/entities/auth.entity';
 import { UserDocument, UserModel } from './entities/user.entity';
 import { UpdateProfileAuthDto } from './dto/profile-user.dto';
 import { StorageService } from '../providers/file';
+import {
+  AuthSessionDocument,
+  AuthSessionModel,
+} from '../auth/entities/auth-session.entity';
 
 @Injectable()
 export class UserService {
@@ -25,6 +29,10 @@ export class UserService {
     // inject model
     @InjectModel(AuthModel.name)
     private AuthDocument: Model<AuthDocument>,
+
+    // inject model
+    @InjectModel(AuthSessionModel.name)
+    private AuthSessionDocument: Model<AuthSessionDocument>,
 
     private storageService: StorageService,
   ) {}
@@ -81,10 +89,20 @@ export class UserService {
       );
     }
 
-    return this.AuthDocument.findOneAndRemove({
-      userId,
-      _id: id,
+    const session = await this.connection.startSession();
+
+    await session.withTransaction(async () => {
+      await this.AuthDocument.findOneAndRemove({
+        userId,
+        _id: id,
+      });
+
+      await this.AuthSessionDocument.remove({
+        authId: id,
+      });
     });
+
+    await session.endSession();
   }
 
   async validateEmailOrUsername(query: string) {

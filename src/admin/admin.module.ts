@@ -7,7 +7,7 @@ import { UserModule } from '../user/user.module';
 import { UserModel, UserSchema } from '../user/entities/user.entity';
 import { AuthModel, AuthSchema } from '../auth/entities/auth.entity';
 import {
-  AuthModelSchema,
+  AuthSessionModelSchema,
   AuthSessionModel,
 } from '../auth/entities/auth-session.entity';
 import {
@@ -26,7 +26,7 @@ import { AuthModule } from '../auth/auth.module';
     MongooseModule.forFeature([
       { name: UserModel.name, schema: UserSchema },
       { name: AuthModel.name, schema: AuthSchema },
-      { name: AuthSessionModel.name, schema: AuthModelSchema },
+      { name: AuthSessionModel.name, schema: AuthSessionModelSchema },
       { name: AuthChallengeModel.name, schema: AuthChallengeSchema },
     ]),
     UserModule,

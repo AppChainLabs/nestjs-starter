@@ -7,7 +7,10 @@ import { AuthService } from './auth.service';
 import { HashingAlgorithm } from './entities/auth.entity';
 import { UserService } from '../user/user.service';
 import { HashingService } from '../providers/hashing';
-import { AuthSessionDocument } from './entities/auth-session.entity';
+import {
+  AuthSessionDocument,
+  SessionType,
+} from './entities/auth-session.entity';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -33,6 +36,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtPayload.sid,
     )) as AuthSessionDocument;
     if (!session) throw new UnauthorizedException();
+
+    if (session.sessionType !== SessionType.ResetCredential) {
+      const authEntity = await this.authService.findAuthEntityById(
+        session.authId,
+      );
+      if (!authEntity) throw new UnauthorizedException();
+    }
 
     if (new Date().getTime() >= new Date(session.expiresAt).getTime()) {
       throw new UnauthorizedException();

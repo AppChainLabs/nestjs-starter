@@ -84,11 +84,11 @@ describe('[profile] profile management tests (e2e)', () => {
   });
 
   it('should fail if validate an existed username/email', async () => {
-    const evmAuthUser = testHelper.evmAuthUser;
+    const passwordAuthUser = testHelper.passwordAuthUser;
     const app = testHelper.app;
 
     const profileResponse = await request(app.getHttpServer())
-      .post(`/api/user/validate/username/${evmAuthUser.email}`)
+      .post(`/api/user/validate/username/${passwordAuthUser.email}`)
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
       .send();
@@ -264,12 +264,13 @@ describe('[profile] profile management tests (e2e)', () => {
   });
 
   it('should connect email successfully', async () => {
-    const targetUser = testHelper.solanaPasswordAuthUser;
+    const targetUser = testHelper.solanaAuthUser;
     const app = testHelper.app;
     const accessToken = targetUser.accessToken;
 
     const newEmail = 'newemail@abcxyz.com';
     const authService = testHelper.getModule<AuthService>(AuthService);
+    const userService = testHelper.getModule<UserService>(UserService);
     const otp = await authService.generateOtp(newEmail);
 
     const profileResponse = await request(app.getHttpServer())
@@ -283,6 +284,9 @@ describe('[profile] profile management tests (e2e)', () => {
       });
 
     expect(profileResponse.statusCode).toEqual(HttpStatus.CREATED);
-    expect(profileResponse.body.email).toEqual(newEmail);
+
+    const userDoc = await userService.findByEmail(newEmail);
+    expect(userDoc.email).toEqual(newEmail);
+    expect(userDoc.id).toEqual(targetUser.userId);
   });
 });

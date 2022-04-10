@@ -80,20 +80,11 @@ describe('[auth] auth token and session tests (e2e)', () => {
     const passwordAuthUser = testHelper.passwordAuthUser;
     const app = testHelper.app;
 
-    const authService = testHelper.getModule<AuthService>(AuthService);
-    const userService = testHelper.getModule<UserService>(UserService);
-    const user = await userService.findById(passwordAuthUser.userId);
-
-    const { accessToken } = await authService.generateAccessToken(
-      'reset-credential-auth',
-      { authEntity: {} as any, user },
-    );
-
     const profileResponse = await request(app.getHttpServer())
       .get('/api/user/profile')
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
-      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Authorization', `Bearer ${passwordAuthUser.accessToken}`)
       .send();
 
     expect(profileResponse.statusCode).toEqual(HttpStatus.OK);

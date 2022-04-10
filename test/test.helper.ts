@@ -47,7 +47,6 @@ export class TestHelper {
 
   public solanaAuthUser: {
     userId: string;
-    email: string;
     privateKey: string;
     walletAddress: string;
     accessToken: string;
@@ -55,7 +54,6 @@ export class TestHelper {
 
   public evmAuthUser: {
     userId: string;
-    email: string;
     privateKey: string;
     walletAddress: string;
     accessToken: string;

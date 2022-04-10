@@ -7,6 +7,10 @@ import { UserController } from './user.controller';
 import { UserModel, UserSchema } from './entities/user.entity';
 import { AuthModel, AuthSchema } from '../auth/entities/auth.entity';
 import { StorageService } from '../providers/file';
+import {
+  AuthSessionModel,
+  AuthSessionModelSchema,
+} from '../auth/entities/auth-session.entity';
 
 @Module({
   controllers: [UserController],
@@ -16,6 +20,7 @@ import { StorageService } from '../providers/file';
     MongooseModule.forFeature([
       { name: UserModel.name, schema: UserSchema },
       { name: AuthModel.name, schema: AuthSchema },
+      { name: AuthSessionModel.name, schema: AuthSessionModelSchema },
     ]),
   ],
   exports: [UserService],

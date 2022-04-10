@@ -50,10 +50,11 @@ export class AuthSessionModel implements AuthSession {
   readonly expiresAt: string;
 }
 
-export const AuthModelSchema = SchemaFactory.createForClass(AuthSessionModel);
-AuthModelSchema.index({ authorizerId: 1 });
-AuthModelSchema.index({ userId: 1 });
-AuthModelSchema.index({ authId: 1 });
-AuthModelSchema.index({ checksum: 1 }, { unique: true });
+export const AuthSessionModelSchema =
+  SchemaFactory.createForClass(AuthSessionModel);
+AuthSessionModelSchema.index({ authorizerId: 1 });
+AuthSessionModelSchema.index({ userId: 1 });
+AuthSessionModelSchema.index({ authId: 1 });
+AuthSessionModelSchema.index({ checksum: 1 }, { unique: true });
 
 export type AuthSessionDocument = AuthSession & Document;

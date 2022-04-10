@@ -53,7 +53,7 @@ export class UserController {
     @Request() req,
   ) {
     const session = req.user;
-    return this.userService.updateProfile(session.user._id, updateProfileDto);
+    return this.userService.updateProfile(session.user.id, updateProfileDto);
   }
 
   @ApiConsumes('multipart/form-data')
@@ -67,7 +67,7 @@ export class UserController {
   )
   async upload(@UploadedFiles() files: Express.Multer.File[], @Request() req) {
     const session = req.user;
-    return this.userService.uploadFile(session.user._id, files[0]);
+    return this.userService.uploadFile(session.user.id, files[0]);
   }
 
   @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
@@ -75,7 +75,7 @@ export class UserController {
   @Get('/profile/auth-entities')
   getUserAuthEntities(@Request() req) {
     const session = req.user;
-    return this.userService.getUserAuthEntities(session.user._id);
+    return this.userService.getUserAuthEntities(session.user.id);
   }
 
   @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
@@ -83,7 +83,7 @@ export class UserController {
   @Delete('/profile/auth-entities/:auth_id')
   deleteUserAuthEntity(@Param('auth_id') id: string, @Request() req) {
     const session = req.user;
-    return this.userService.deleteUserAuthEntity(session.user._id, id);
+    return this.userService.deleteUserAuthEntity(session.user.id, id);
   }
 
   @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
@@ -91,6 +91,6 @@ export class UserController {
   @Post('/profile/auth-entities/:auth_id/make-primary')
   setPrimaryAuthEntity(@Param('auth_id') auth_id: string, @Request() req) {
     const session = req.user;
-    return this.userService.setPrimaryAuthEntity(session.user._id, auth_id);
+    return this.userService.setPrimaryAuthEntity(session.user.id, auth_id);
   }
 }

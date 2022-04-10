@@ -15,7 +15,7 @@ import { PasswordAuthStrategy } from './password-auth.strategy';
 import { Jwt } from '../providers/jwt';
 import { JwtStrategy } from './jwt-auth.strategy';
 import {
-  AuthModelSchema,
+  AuthSessionModelSchema,
   AuthSessionModel,
 } from './entities/auth-session.entity';
 import {
@@ -47,7 +47,7 @@ import { StorageService } from '../providers/file';
     MongooseModule.forFeature([
       { name: UserModel.name, schema: UserSchema },
       { name: AuthModel.name, schema: AuthSchema },
-      { name: AuthSessionModel.name, schema: AuthModelSchema },
+      { name: AuthSessionModel.name, schema: AuthSessionModelSchema },
       { name: AuthChallengeModel.name, schema: AuthChallengeSchema },
     ]),
 

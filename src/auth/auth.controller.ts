@@ -126,6 +126,6 @@ export class AuthController {
     @Request() req,
   ) {
     const session = req.user;
-    return this.authService.connectEmail(session.user._id, connectEmailAuthDto);
+    return this.authService.connectEmail(session.user.id, connectEmailAuthDto);
   }
 }
