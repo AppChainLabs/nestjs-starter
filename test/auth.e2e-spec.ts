@@ -21,7 +21,7 @@ describe('[auth] auth token and session tests (e2e)', () => {
     const { accessToken } = await authService.generateAccessToken(
       'reset-credential-auth',
       { authEntity: {} as any, user },
-      SessionType.ResetCredential,
+      { sessionType: SessionType.ResetCredential, expiresIn: '5m' },
     );
 
     const connectAuthChallenge = await request(app.getHttpServer())
@@ -63,7 +63,7 @@ describe('[auth] auth token and session tests (e2e)', () => {
     const { accessToken } = await authService.generateAccessToken(
       'reset-credential-auth',
       { authEntity: {} as any, user },
-      SessionType.ResetCredential,
+      { sessionType: SessionType.ResetCredential, expiresIn: '5m' },
     );
 
     const profileResponse = await request(app.getHttpServer())
@@ -87,7 +87,6 @@ describe('[auth] auth token and session tests (e2e)', () => {
     const { accessToken } = await authService.generateAccessToken(
       'reset-credential-auth',
       { authEntity: {} as any, user },
-      SessionType.Auth,
     );
 
     const profileResponse = await request(app.getHttpServer())

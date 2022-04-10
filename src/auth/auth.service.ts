@@ -102,7 +102,7 @@ export class AuthService {
       const { accessToken } = await this.generateAccessToken(
         'connect-wallet-via-email',
         { authEntity: {} as any, user },
-        SessionType.ResetCredential,
+        { sessionType: SessionType.ResetCredential, expiresIn: '5m' },
       );
 
       const connectWalletLink = `${this.configService.get<string>(
@@ -177,15 +177,20 @@ export class AuthService {
 
   async generateAccessToken(
     audience: string,
-    {
-      authEntity,
-      user,
-    }: {
+    requestSession: {
       authEntity: AuthDocument;
       user: UserDocument;
     },
-    sessionType = SessionType.Auth,
+    options: {
+      sessionType: SessionType;
+      grantType?: GrantType;
+      expiresIn?: string;
+    } = { sessionType: SessionType.Auth, grantType: GrantType.Self },
   ) {
+    const { authEntity, user } = requestSession;
+
+    const { sessionType, expiresIn, grantType } = options;
+
     const payload = {
       signedData: {
         uid: user.id,
@@ -201,14 +206,16 @@ export class AuthService {
 
     const checksum = await this.generateChecksum(payload);
 
-    const duration = Number(ms(this.jwtOptions.getSignInOptions().expiresIn));
+    const duration = Number(
+      ms(expiresIn || this.jwtOptions.getSignInOptions().expiresIn),
+    );
     const sessionExpiresAt = new Date(new Date().getTime() + duration);
 
     const sessionObj = new this.AuthSessionDocument({
       authId: authEntity.id,
       authorizerId: user.id,
       userId: user.id,
-      grantType: GrantType.Self,
+      grantType,
       checksum,
       sessionType,
       expiresAt: sessionExpiresAt,
