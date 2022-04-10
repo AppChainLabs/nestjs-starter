@@ -144,8 +144,7 @@ export class AuthService {
     const session = await this.connection.startSession();
 
     await session.withTransaction(async () => {
-      latestAuthChallenge.isResolved = true;
-      await latestAuthChallenge.save();
+      await this.resolveAuthChallenge(latestAuthChallenge.id);
 
       user.email = connectEmailDto.email;
       response = await user.save();
@@ -316,12 +315,17 @@ export class AuthService {
     );
 
     if (isVerified) {
-      // now to mark the challenge resolved
-      authChallenge.isResolved = true;
-      await authChallenge.save();
+      await this.resolveAuthChallenge(walletCredentialDto.authChallengeId);
     }
 
     return isVerified;
+  }
+
+  async resolveAuthChallenge(authChallengeId: string) {
+    const authChallenge = await this.findAuthChallengeById(authChallengeId);
+
+    authChallenge.isResolved = true;
+    return authChallenge.save();
   }
 
   async signUpUser(registrationDto: RegistrationAuthDto) {
