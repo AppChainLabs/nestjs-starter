@@ -14,7 +14,6 @@ export const initUserAdmin = async (app, userService: UserService) => {
   const userPayload = {
     avatar: 'https://google.com/userA.png',
     email: 'user@admin.auth',
-    username: 'UserAdminAuth',
     displayName: 'user admin auth',
     type: AuthType.Password,
     credential: {
@@ -75,7 +74,6 @@ export const initUsersWithSolanaPasswordAuth = async (app) => {
   const userPayload = {
     avatar: 'https://google.com/userA.png',
     email: 'user@solana.password.auth',
-    username: 'UserSolanaPasswordAuth',
     displayName: 'user password auth',
     type: AuthType.Password,
     credential: {
@@ -160,7 +158,6 @@ export const initUsersWithPasswordAuth = async (app) => {
   const userPayload = {
     avatar: 'https://google.com/userA.png',
     email: 'user@password.auth',
-    username: 'UserPasswordAuth',
     displayName: 'user password auth',
     type: AuthType.Password,
     credential: {
@@ -238,7 +235,6 @@ export const initUserWithSolanaAuth = async (app, authService) => {
   const signUpUserPayload = {
     avatar: 'https://google.com/image.png',
     email: 'user@solana.auth',
-    username: 'UserSolanaAuth',
     displayName: 'user solana auth',
     type: AuthType.Solana,
     credential: {
@@ -356,7 +352,6 @@ export const initUserWithEVMAuth = async (app, authService) => {
   const signUpUserPayload = {
     avatar: 'https://google.com/image.png',
     email: 'user@evm.auth',
-    username: 'UserEvmAuth',
     displayName: 'user evm auth',
     type: AuthType.EVMChain,
     credential: {
