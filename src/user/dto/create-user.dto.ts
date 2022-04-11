@@ -28,9 +28,11 @@ export class CreateUserDto implements User {
   @IsEmail()
   email: string;
 
+  @IsOptional()
   @IsBoolean()
   isEmailVerified: boolean;
 
+  @IsOptional()
   @IsBoolean()
   isEnabled: boolean;
 

@@ -180,24 +180,25 @@ export class AdminService {
   }
 
   async adminUpdateUserById(id: string, updateUserDto: UpdateUserDto) {
-    await this.UserDocument.updateOne({ id }, { $set: updateUserDto });
+    await this.UserDocument.updateOne({ _id: id }, { $set: updateUserDto });
     return this.adminFindUserById(id);
   }
 
   async adminRemoveUserById(userId: string) {
+    console.log({ userId });
     const session = await this.connection.startSession();
 
     await session.withTransaction(async () => {
       // clean up all relation objects
-      await this.AuthSessionDocument.remove({
+      await this.AuthSessionDocument.deleteMany({
         userId,
       });
 
-      await this.AuthDocument.remove({
+      await this.AuthDocument.deleteMany({
         userId,
       });
 
-      await this.UserDocument.findByIdAndRemove(userId);
+      await this.UserDocument.deleteOne({ _id: userId });
     });
 
     await session.endSession();
@@ -217,12 +218,12 @@ export class AdminService {
     const session = await this.connection.startSession();
 
     await session.withTransaction(async () => {
-      await this.AuthDocument.findOneAndRemove({
+      await this.AuthDocument.deleteOne({
         userId,
         _id: id,
       });
 
-      await this.AuthSessionDocument.remove({
+      await this.AuthSessionDocument.deleteMany({
         authId: id,
       });
     });

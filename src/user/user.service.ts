@@ -92,12 +92,12 @@ export class UserService {
     const session = await this.connection.startSession();
 
     await session.withTransaction(async () => {
-      await this.AuthDocument.findOneAndRemove({
+      await this.AuthDocument.deleteOne({
         userId,
         _id: id,
       });
 
-      await this.AuthSessionDocument.remove({
+      await this.AuthSessionDocument.deleteMany({
         authId: id,
       });
     });

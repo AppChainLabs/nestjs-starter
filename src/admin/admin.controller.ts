@@ -10,6 +10,7 @@ import {
   SetMetadata,
   Query,
   Optional,
+  HttpCode,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
@@ -46,7 +47,7 @@ export class AdminController {
   @SetMetadata('roles', [UserRole.SystemAdmin])
   @Get('user/')
   findAll(
-    @Query('searchQuery') searchQuery: string,
+    @Query('query') searchQuery: string,
     @Query('limit') limit: number,
     @Query('skip') skip: number,
     @Optional() @Query('sort') sort = '-createdAt',
@@ -74,6 +75,7 @@ export class AdminController {
   @SetMetadata('sessionType', [SessionType.Auth])
   @SetMetadata('roles', [UserRole.SystemAdmin])
   @Post('user/:user_id/auth-entities/:auth_id/make-primary')
+  @HttpCode(200)
   setPrimaryEntity(
     @Param('auth_id') auth_id: string,
     @Param('user_id') user_id: string,
@@ -96,6 +98,7 @@ export class AdminController {
   @SetMetadata('sessionType', [SessionType.Auth])
   @SetMetadata('roles', [UserRole.SystemAdmin])
   @Delete('user/:user_id/auth-entities/:auth_id')
+  @HttpCode(204)
   deleteAuthEntity(
     @Param('auth_id') id: string,
     @Param('user_id') user_id: string,
@@ -114,6 +117,7 @@ export class AdminController {
   @UseGuards(AuthGuard('jwt'), RolesGuard, RestrictJwtSessionGuard)
   @SetMetadata('sessionType', [SessionType.Auth])
   @SetMetadata('roles', [UserRole.SystemAdmin])
+  @HttpCode(204)
   @Delete('user/:user_id')
   remove(@Param('user_id') id: string) {
     return this.adminService.adminRemoveUserById(id);

@@ -26,19 +26,19 @@ export class UserModel implements User {
   @Prop({ type: String })
   email: string;
 
-  @Prop()
+  @Prop({ type: String })
   displayName: string;
 
-  @Prop()
+  @Prop({ type: String })
   avatar: string;
 
   @Prop({ type: Array, enum: UserRole, default: [UserRole.User] })
   roles: string[];
 
-  @Prop()
+  @Prop({ type: Boolean, default: false })
   isEmailVerified: boolean;
 
-  @Prop()
+  @Prop({ type: Boolean, default: true })
   isEnabled: boolean;
 }
 

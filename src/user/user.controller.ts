@@ -11,6 +11,7 @@ import {
   Put,
   UseInterceptors,
   UploadedFiles,
+  HttpCode,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
@@ -81,6 +82,7 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'), RestrictJwtSessionGuard)
   @SetMetadata('sessionType', [SessionType.Auth])
   @Delete('/profile/auth-entities/:auth_id')
+  @HttpCode(204)
   deleteUserAuthEntity(@Param('auth_id') id: string, @Request() req) {
     const session = req.user;
     return this.userService.deleteUserAuthEntity(session.user.id, id);

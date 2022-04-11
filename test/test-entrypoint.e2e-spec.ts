@@ -16,3 +16,4 @@ require('./auth.e2e-spec');
 require('./registration.e2e-spec');
 require('./connect-wallet.e2e-spec');
 require('./profile.e2e-specs');
+require('./admin.e2e-spec');

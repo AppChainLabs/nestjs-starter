@@ -253,7 +253,7 @@ describe('[profile] profile management tests (e2e)', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
-    expect(profileResponse.statusCode).toEqual(HttpStatus.OK);
+    expect(profileResponse.statusCode).toEqual(HttpStatus.NO_CONTENT);
 
     const authEntitiesAfterDelete = await userService.getUserAuthEntities(
       targetUser.userId,
